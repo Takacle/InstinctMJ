@@ -889,15 +889,54 @@ def instinct_v11_parkour_amp_env_cfg(
 
 
 # ---------------------------------------------------------------------------
-# Public factory function
+# Public factory functions
 # ---------------------------------------------------------------------------
+
+
+def instinct_v11_parkour_amp_baseline_cfg(
+    *,
+    play: bool = False,
+) -> ManagerBasedRlEnvCfg:
+    """Baseline V11 parkour AMP env config — no Plan-B modifications.
+
+    Used as the control group in comparison experiments against
+    ``instinct_v11_parkour_amp_final_cfg`` (Plan-B).
+
+    Differences from Plan-B:
+    - Upper-body action scale: full beyondmimic_action_scale (no ×0.1)
+    - No joint_deviation_upper_body reward term
+    - discriminator_reward_coef: 0.25 (normal AMP style weight)
+    """
+    cfg = instinct_v11_parkour_amp_env_cfg(play=play)
+
+    # Restore full action scale for all joints (override the Plan-B suppression).
+    joint_pos_action: JointPositionActionCfg = cfg.actions["joint_pos"]
+    joint_pos_action.scale = copy.deepcopy(beyondmimic_action_scale)
+
+    # Remove the upper-body deviation penalty added by Plan-B.
+    cfg.rewards.pop("joint_deviation_upper_body", None)
+
+    if play:
+        cfg.viewer = ViewerConfig(
+            lookat=(0.0, 0.75, 0.0),
+            distance=4.123105625617661,
+            elevation=-14.036243467926479,
+            azimuth=180.0,
+            origin_type=ViewerConfig.OriginType.WORLD,
+            entity_name=None,
+        )
+        cfg.viewer.origin_type = ViewerConfig.OriginType.WORLD
+        cfg.viewer.entity_name = None
+        cfg.viewer.body_name = None
+
+    return cfg
 
 
 def instinct_v11_parkour_amp_final_cfg(
     *,
     play: bool = False,
 ) -> ManagerBasedRlEnvCfg:
-    """Create the final V11 parkour AMP env configuration."""
+    """Create the final V11 parkour AMP env configuration (Plan-B)."""
     cfg = instinct_v11_parkour_amp_env_cfg(play=play)
 
     if play:
