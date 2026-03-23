@@ -288,6 +288,9 @@ def run_train(task_id: str, cfg: TrainConfig, log_dir: Path) -> None:
 
     if device.startswith("cuda"):
         os.environ["MUJOCO_EGL_DEVICE_ID"] = str(_parse_cuda_device_index(device))
+        import warp as wp
+
+        wp.set_device(device)
 
     viewer_enabled = cfg.viewer == "native" and rank == 0
     video_enabled = cfg.video and rank == 0
@@ -436,6 +439,30 @@ def run_train(task_id: str, cfg: TrainConfig, log_dir: Path) -> None:
     for signum in install_signal_numbers:
         signal_handlers_to_restore[signum] = signal.getsignal(signum)
         signal.signal(signum, _interrupt_handler)
+
+    # Diagnose NaN in initial observations before training starts.
+    _raw_obs_dict = env.observation_manager.compute()
+    _has_nan = False
+    for _gname, _gdata in _raw_obs_dict.items():
+        if isinstance(_gdata, dict):
+            for _tname, _ttensor in _gdata.items():
+                if isinstance(_ttensor, torch.Tensor) and torch.isnan(_ttensor).any():
+                    print(f"[DIAG] NaN in obs group='{_gname}' term='{_tname}': "
+                          f"shape={_ttensor.shape}, nan_count={torch.isnan(_ttensor).sum().item()}")
+                    _has_nan = True
+        elif isinstance(_gdata, torch.Tensor) and torch.isnan(_gdata).any():
+            print(f"[DIAG] NaN in obs group='{_gname}': "
+                  f"shape={_gdata.shape}, nan_count={torch.isnan(_gdata).sum().item()}")
+            _has_nan = True
+    if not _has_nan:
+        print("[DIAG] No NaN in initial obs; checking actor weights ...")
+        for _pname, _param in runner.alg.actor_critic.named_parameters():
+            if torch.isnan(_param).any():
+                print(f"[DIAG] NaN in actor param '{_pname}': "
+                      f"shape={_param.shape}, nan_count={torch.isnan(_param).sum().item()}")
+                _has_nan = True
+        if not _has_nan:
+            print("[DIAG] No NaN in initial obs or actor weights. Bug is elsewhere.")
 
     try:
         runner.learn(

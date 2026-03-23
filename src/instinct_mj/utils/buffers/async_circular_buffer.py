@@ -52,7 +52,7 @@ class AsyncCircularBuffer(CircularBuffer):
 
         if self._buffer is None:
             self._pointer = -torch.ones(self._batch_size, dtype=torch.long, device=self._device)
-            self._buffer = torch.empty(
+            self._buffer = torch.zeros(
                 (self.max_length, self._batch_size) + data.shape[1:], device=self._device, dtype=data.dtype
             )
 

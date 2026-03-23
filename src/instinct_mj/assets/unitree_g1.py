@@ -19,6 +19,7 @@ __file_dir__ = os.path.dirname(os.path.realpath(__file__))
 G1_MJCF_PATH: str = os.path.join(__file_dir__, "resources/unitree_g1/xml/g1_29dof_torsobase_popsicle.xml")
 G1_MESHES_DIR: str = os.path.join(__file_dir__, "resources/unitree_g1/meshes")
 
+G1_URDF_PATH: str = os.path.join(__file_dir__, "resources/unitree_g1/urdf/g1_29dof_torsobase_popsicle.urdf")
 """
 joint name order:
 [
