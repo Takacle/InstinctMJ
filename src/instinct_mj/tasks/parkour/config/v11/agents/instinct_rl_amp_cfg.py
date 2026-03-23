@@ -50,7 +50,7 @@ class AmpAlgoCfg(InstinctRlPpoAlgorithmCfg):
             "nonlinearity": "ReLU",
         }
     )
-    discriminator_reward_coef: float = 0.0  # Phase-B: pure task reward; raise to 0.1→0.3 once stair trajectory emerges
+    discriminator_reward_coef: float = 0.25  # Restore to baseline
     discriminator_reward_type: str = "quad"
     discriminator_loss_func: str = "MSELoss"
     discriminator_gradient_penalty_coef: float = 5.0

@@ -153,9 +153,20 @@ def instinct_v11_parkour_amp_env_cfg(
     # Start from V11 tracking base, then override for parkour.
     cfg = v11_flat_tracking_env_cfg(play=play, has_state_estimation=True)
     cfg.monitors = {}
-    cfg.viewer.origin_type = ViewerConfig.OriginType.WORLD
-    cfg.viewer.entity_name = None
-    cfg.viewer.body_name = None
+
+    if play:
+        cfg.viewer = ViewerConfig(
+            lookat=(0.0, 0.75, 0.0),
+            distance=4.123105625617661,
+            elevation=-14.036243467926479,
+            azimuth=180.0,
+            origin_type=ViewerConfig.OriginType.WORLD,
+            entity_name=None,
+        )
+    else:
+        cfg.viewer.origin_type = ViewerConfig.OriginType.WORLD
+        cfg.viewer.entity_name = None
+        cfg.viewer.body_name = None
 
     # Replace robot entity with V11
     v11_robot_cfg = copy.deepcopy(V11_29DOF_POPSICLE_CFG)
@@ -163,29 +174,8 @@ def instinct_v11_parkour_amp_env_cfg(
     v11_robot_cfg.init_state.pos = (0.0, 0.0, 0.9)
     cfg.scene.entities["robot"] = v11_robot_cfg
 
-    # Override action scale for V11.
-    # Phase-B: suppress upper-body joints (waist / arms / wrists) to 10% of their
-    # normal scale so the policy can focus on learning the stair-climbing gait with
-    # the legs, while the AMP discriminator still receives the full 29-DOF state.
-    _UPPER_BODY_SCALE_FACTOR = 0.1
-    _UPPER_BODY_JOINT_PATTERNS = (
-        "waist_yaw_joint",
-        "waist_roll_joint",
-        "waist_pitch_joint",
-        ".*_shoulder_pitch_joint",
-        ".*_shoulder_roll_joint",
-        ".*_shoulder_yaw_joint",
-        ".*_elbow_joint",
-        ".*_wrist_roll_joint",
-        ".*_wrist_yaw_joint",
-        ".*_wrist_pitch_joint",
-    )
     joint_pos_action: JointPositionActionCfg = cfg.actions["joint_pos"]
-    action_scale = copy.deepcopy(beyondmimic_action_scale)
-    for _pattern in _UPPER_BODY_JOINT_PATTERNS:
-        if _pattern in action_scale:
-            action_scale[_pattern] = action_scale[_pattern] * _UPPER_BODY_SCALE_FACTOR
-    joint_pos_action.scale = action_scale
+    joint_pos_action.scale = copy.deepcopy(beyondmimic_action_scale)
 
     # Basic settings
     cfg.scene.num_envs = 2048
@@ -651,29 +641,6 @@ def instinct_v11_parkour_amp_env_cfg(
                 )
             },
         ),
-        # Phase-B: pull upper-body joints back toward default pose to prevent
-        # drift while their action scale is suppressed (scale=0.1).
-        "joint_deviation_upper_body": RewardTermCfg(
-            func=parkour_mdp.joint_deviation_square,
-            weight=-0.3,
-            params={
-                "asset_cfg": SceneEntityCfg(
-                    "robot",
-                    joint_names=(
-                        "waist_yaw_joint",
-                        "waist_roll_joint",
-                        "waist_pitch_joint",
-                        ".*_shoulder_pitch_joint",
-                        ".*_shoulder_roll_joint",
-                        ".*_shoulder_yaw_joint",
-                        ".*_elbow_joint",
-                        ".*_wrist_roll_joint",
-                        ".*_wrist_yaw_joint",
-                        ".*_wrist_pitch_joint",
-                    ),
-                )
-            },
-        ),
         "ang_vel_xy_l2": RewardTermCfg(func=parkour_mdp.ang_vel_xy_l2, weight=-0.05),
         "dof_torques_l2": RewardTermCfg(
             func=parkour_mdp.joint_torques_l2,
@@ -897,59 +864,13 @@ def instinct_v11_parkour_amp_baseline_cfg(
     *,
     play: bool = False,
 ) -> ManagerBasedRlEnvCfg:
-    """Baseline V11 parkour AMP env config — no Plan-B modifications.
-
-    Used as the control group in comparison experiments against
-    ``instinct_v11_parkour_amp_final_cfg`` (Plan-B).
-
-    Differences from Plan-B:
-    - Upper-body action scale: full beyondmimic_action_scale (no ×0.1)
-    - No joint_deviation_upper_body reward term
-    - discriminator_reward_coef: 0.25 (normal AMP style weight)
-    """
-    cfg = instinct_v11_parkour_amp_env_cfg(play=play)
-
-    # Restore full action scale for all joints (override the Plan-B suppression).
-    joint_pos_action: JointPositionActionCfg = cfg.actions["joint_pos"]
-    joint_pos_action.scale = copy.deepcopy(beyondmimic_action_scale)
-
-    # Remove the upper-body deviation penalty added by Plan-B.
-    cfg.rewards.pop("joint_deviation_upper_body", None)
-
-    if play:
-        cfg.viewer = ViewerConfig(
-            lookat=(0.0, 0.75, 0.0),
-            distance=4.123105625617661,
-            elevation=-14.036243467926479,
-            azimuth=180.0,
-            origin_type=ViewerConfig.OriginType.WORLD,
-            entity_name=None,
-        )
-        cfg.viewer.origin_type = ViewerConfig.OriginType.WORLD
-        cfg.viewer.entity_name = None
-        cfg.viewer.body_name = None
-
-    return cfg
+    """Baseline V11 parkour AMP env config."""
+    return instinct_v11_parkour_amp_env_cfg(play=play)
 
 
 def instinct_v11_parkour_amp_final_cfg(
     *,
     play: bool = False,
 ) -> ManagerBasedRlEnvCfg:
-    """Create the final V11 parkour AMP env configuration (Plan-B)."""
-    cfg = instinct_v11_parkour_amp_env_cfg(play=play)
-
-    if play:
-        cfg.viewer = ViewerConfig(
-            lookat=(0.0, 0.75, 0.0),
-            distance=4.123105625617661,
-            elevation=-14.036243467926479,
-            azimuth=180.0,
-            origin_type=ViewerConfig.OriginType.WORLD,
-            entity_name=None,
-        )
-        cfg.viewer.origin_type = ViewerConfig.OriginType.WORLD
-        cfg.viewer.entity_name = None
-        cfg.viewer.body_name = None
-
-    return cfg
+    """Create the final V11 parkour AMP env configuration."""
+    return instinct_v11_parkour_amp_env_cfg(play=play)
