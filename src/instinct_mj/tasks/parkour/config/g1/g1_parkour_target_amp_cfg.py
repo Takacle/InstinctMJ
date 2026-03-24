@@ -186,8 +186,8 @@ def instinct_g1_parkour_amp_env_cfg(
     cfg.sim.mujoco.iterations = 10
     cfg.sim.mujoco.ls_iterations = 20
     cfg.sim.mujoco.ccd_iterations = 128
-    # Keep multiccd disabled under mjlab's flag-based MuJoCo API.
-    cfg.sim.mujoco.enableflags = tuple(flag for flag in cfg.sim.mujoco.enableflags if flag != "multiccd")
+    # Keep multiccd disabled.
+    cfg.sim.mujoco.multiccd = False
     robot_cfg = cfg.scene.entities["robot"]
     robot_cfg.articulation.actuators = copy.deepcopy(beyondmimic_g1_29dof_delayed_actuator_cfgs)
     joint_pos_action: JointPositionActionCfg = cfg.actions["joint_pos"]

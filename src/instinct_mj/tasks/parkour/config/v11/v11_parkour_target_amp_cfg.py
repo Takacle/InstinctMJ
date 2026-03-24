@@ -186,7 +186,8 @@ def instinct_v11_parkour_amp_env_cfg(
     cfg.sim.mujoco.iterations = 10
     cfg.sim.mujoco.ls_iterations = 20
     cfg.sim.mujoco.ccd_iterations = 128
-    cfg.sim.mujoco.multiccd = False
+    # Keep multiccd disabled under mjlab's flag-based MuJoCo API.
+    cfg.sim.mujoco.enableflags = False
 
     # Terrain
     terrain_gen = copy.deepcopy(ROUGH_TERRAINS_CFG_PLAY if play else ROUGH_TERRAINS_CFG)
@@ -265,7 +266,7 @@ def instinct_v11_parkour_amp_env_cfg(
                 z_max=-0.045,   # capsule top at z=-0.047; sample contact zone only
                 z_num=2,
             ),
-            debug_vis=True,
+            debug_vis=False,
         ),
         RayCastSensorCfg(
             name="left_height_scanner",
@@ -296,7 +297,9 @@ def instinct_v11_parkour_amp_env_cfg(
             vertical_aperture=2 * math.tan(math.radians(58.29) / 2.0),
             ray_alignment="yaw",
             offset=NoisyGroupedRayCasterCameraCfg.OffsetCfg(
-                # V11 head camera nominal pose (similar to G1, mounted at waist_pitch_link)
+                # TODO: These pos/rot values are copied from G1 (torso_link frame).
+                # V11 mounts the camera at waist_pitch_link which has different geometry;
+                # measure and update with correct V11 head camera offsets.
                 pos=(
                     0.0487988662332928,
                     0.01,
@@ -361,7 +364,7 @@ def instinct_v11_parkour_amp_env_cfg(
                     "ang_vel_z": (-1.0, 1.0),
                 },
                 "boxes": {"lin_vel_x": (0.45, 0.8), "lin_vel_y": (0.0, 0.0), "ang_vel_z": (-1.0, 1.0)},
-                "mesh_boxes": {"lin_vel_x": (0.45, 0.8), "lin_vel_y": (0.0, 0.0), "ang_vel_z": (-1.0, 1.0)},
+                "dense_boxes": {"lin_vel_x": (0.45, 0.8), "lin_vel_y": (0.0, 0.0), "ang_vel_z": (-1.0, 1.0)},
                 "hf_pyramid_slope_inv": {
                     "lin_vel_x": (0.45, 0.8),
                     "lin_vel_y": (0.0, 0.0),
@@ -718,6 +721,16 @@ def instinct_v11_parkour_amp_env_cfg(
                 "normalize_by_stiffness": True,
             },
         ),
+        "freeze_upper_body": RewardTermCfg(
+            func=parkour_mdp.joint_deviation_l1,
+            weight=-0.004,
+            params={
+                "asset_cfg": SceneEntityCfg(
+                    "robot",
+                    joint_names=(".*_shoulder_.*", ".*_elbow_.*", ".*_wrist.*", "waist_.*"),
+                )
+            },
+        ),
         # ---------- Safety rewards ----------
         "dof_pos_limits": RewardTermCfg(
             func=envs_mdp.joint_pos_limits,
@@ -843,8 +856,10 @@ def instinct_v11_parkour_amp_env_cfg(
         )
         leg_volume_points_sensor.debug_vis = True
 
-        cfg.scene.terrain.collision_debug_vis = True
+        cfg.scene.terrain.collision_debug_vis = False
+        cfg.events["register_virtual_obstacles"].params["enable_debug_vis"] = False
         cfg.commands["base_velocity"].debug_vis = True
+        cfg.commands["base_velocity"].patch_vis = False
         cfg.terminations["root_height"] = None
         cfg.events["physics_material"] = None
         cfg.events["reset_robot_joints"].params = {
