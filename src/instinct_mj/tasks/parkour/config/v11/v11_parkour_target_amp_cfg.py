@@ -153,20 +153,9 @@ def instinct_v11_parkour_amp_env_cfg(
     # Start from V11 tracking base, then override for parkour.
     cfg = v11_flat_tracking_env_cfg(play=play, has_state_estimation=True)
     cfg.monitors = {}
-
-    if play:
-        cfg.viewer = ViewerConfig(
-            lookat=(0.0, 0.75, 0.0),
-            distance=4.123105625617661,
-            elevation=-14.036243467926479,
-            azimuth=180.0,
-            origin_type=ViewerConfig.OriginType.WORLD,
-            entity_name=None,
-        )
-    else:
-        cfg.viewer.origin_type = ViewerConfig.OriginType.WORLD
-        cfg.viewer.entity_name = None
-        cfg.viewer.body_name = None
+    cfg.viewer.origin_type = ViewerConfig.OriginType.WORLD
+    cfg.viewer.entity_name = None
+    cfg.viewer.body_name = None
 
     # Replace robot entity with V11
     v11_robot_cfg = copy.deepcopy(V11_29DOF_POPSICLE_CFG)
@@ -181,7 +170,7 @@ def instinct_v11_parkour_amp_env_cfg(
     cfg.scene.num_envs = 2048
     cfg.scene.env_spacing = 2.5
     cfg.episode_length_s = 20.0
-    cfg.sim.nconmax = 192  # must be >= actual ncon; 29-DOF wholebody needs more contacts than 12-DOF legs-only
+    cfg.sim.nconmax = 192
     cfg.sim.njmax = 700
     cfg.sim.mujoco.iterations = 10
     cfg.sim.mujoco.ls_iterations = 20
@@ -205,7 +194,7 @@ def instinct_v11_parkour_amp_env_cfg(
         max_init_terrain_level=5,
         virtual_obstacle_source="mesh",
         virtual_obstacle_hfield_height_threshold=0.04,
-        collision_debug_vis=True,
+        collision_debug_vis=False,
         collision_debug_rgba=(0.62, 0.2, 0.9, 0.35),
         virtual_obstacles={
             "edges": edge_obstacle_cfg,
@@ -256,14 +245,14 @@ def instinct_v11_parkour_amp_env_cfg(
             entity_name="robot",
             body_names=".*_ankle_roll_link",
             points_generator=Grid3dPointsGeneratorCfg(
-                x_min=-0.075,   # heel capsule tip at x=-0.070 (center -0.062, r=0.008) + 5mm margin
-                x_max=0.18,     # toe capsule tip at x=+0.176 (center 0.17, r=0.006) + 4mm margin
+                x_min=-0.06,   # heel capsule tip at x=-0.070 (center -0.062, r=0.008) + 5mm margin
+                x_max=0.15,     # toe capsule tip at x=+0.176 (center 0.17, r=0.006) + 4mm margin
                 x_num=16,       # ~1.6 cm spacing over 25.5 cm foot length
                 y_min=-0.04,    # capsule half-extent ±0.0395 (half-len 0.0315 + r 0.008)
                 y_max=0.04,
                 y_num=5,
-                z_min=-0.065,   # capsule bottom at z=-0.063 (center -0.055, r=0.008) + 2mm margin
-                z_max=-0.045,   # capsule top at z=-0.047; sample contact zone only
+                z_min=-0.075,   # capsule bottom at z=-0.063 (center -0.055, r=0.008) + 2mm margin
+                z_max=-0.04,   # capsule top at z=-0.047; sample contact zone only
                 z_num=2,
             ),
             debug_vis=False,
@@ -297,14 +286,14 @@ def instinct_v11_parkour_amp_env_cfg(
             vertical_aperture=2 * math.tan(math.radians(58.29) / 2.0),
             ray_alignment="yaw",
             offset=NoisyGroupedRayCasterCameraCfg.OffsetCfg(
-                # TODO: These pos/rot values are copied from G1 (torso_link frame).
-                # V11 mounts the camera at waist_pitch_link which has different geometry;
-                # measure and update with correct V11 head camera offsets.
+                # V11 head camera offset from waist_pitch_link (world convention):
+                # head_yaw_link z=0.4375 + head_pitch_link z=0.142 + camera z≈0.054 = 0.634
                 pos=(
-                    0.0487988662332928,
-                    0.01,
-                    0.4378029937970051,
+                    0.05,
+                    0.005,
+                    0.634,
                 ),
+                # pos=(0.0487988662332928, 0.01, 0.4378029937970051),
                 rot=(
                     0.9135367613482678,
                     0.004363309284746571,
@@ -491,13 +480,11 @@ def instinct_v11_parkour_amp_env_cfg(
         terms=policy_terms,
         concatenate_terms=False,
         enable_corruption=True,
-        # nan_policy="sanitize",
     )
     cfg.observations["critic"] = ObservationGroupCfg(
         terms=critic_terms,
         concatenate_terms=False,
         enable_corruption=False,
-        # nan_policy="sanitize",
     )
     cfg.observations.pop("actor", None)
 
@@ -570,13 +557,11 @@ def instinct_v11_parkour_amp_env_cfg(
         terms=amp_policy_terms,
         concatenate_terms=False,
         enable_corruption=False,
-        # nan_policy="sanitize",
     )
     cfg.observations["amp_reference"] = ObservationGroupCfg(
         terms=amp_reference_terms,
         concatenate_terms=False,
         enable_corruption=False,
-        # nan_policy="sanitize",
     )
 
     cfg.rewards = {
@@ -856,6 +841,9 @@ def instinct_v11_parkour_amp_env_cfg(
         )
         leg_volume_points_sensor.debug_vis = True
 
+        camera_sensor = next(sensor_cfg for sensor_cfg in cfg.scene.sensors if sensor_cfg.name == "camera")
+        camera_sensor.debug_vis = True
+
         cfg.scene.terrain.collision_debug_vis = False
         cfg.events["register_virtual_obstacles"].params["enable_debug_vis"] = False
         cfg.commands["base_velocity"].debug_vis = True
@@ -875,17 +863,33 @@ def instinct_v11_parkour_amp_env_cfg(
 # ---------------------------------------------------------------------------
 
 
-def instinct_v11_parkour_amp_baseline_cfg(
-    *,
-    play: bool = False,
-) -> ManagerBasedRlEnvCfg:
-    """Baseline V11 parkour AMP env config."""
-    return instinct_v11_parkour_amp_env_cfg(play=play)
-
-
 def instinct_v11_parkour_amp_final_cfg(
     *,
     play: bool = False,
 ) -> ManagerBasedRlEnvCfg:
-    """Create the final V11 parkour AMP env configuration."""
-    return instinct_v11_parkour_amp_env_cfg(play=play)
+    """Create the final V11 parkour AMP env configuration.
+
+    Args:
+      play: If True, apply play-mode overrides (fewer envs, relaxed
+        termination, etc.).
+
+    Returns:
+      A fully-built ``ManagerBasedRlEnvCfg`` instance.
+    """
+    cfg = instinct_v11_parkour_amp_env_cfg(play=play)
+
+    # Apply play-mode viewer overrides
+    if play:
+        cfg.viewer = ViewerConfig(
+            lookat=(0.0, 0.75, 0.0),
+            distance=4.123105625617661,
+            elevation=-14.036243467926479,
+            azimuth=180.0,
+            origin_type=ViewerConfig.OriginType.WORLD,
+            entity_name=None,
+        )
+        cfg.viewer.origin_type = ViewerConfig.OriginType.WORLD
+        cfg.viewer.entity_name = None
+        cfg.viewer.body_name = None
+
+    return cfg

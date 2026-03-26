@@ -267,9 +267,11 @@ _POPSICLE_INIT_STATE = EntityCfg.InitialStateCfg(
 _POPSICLE_INIT_STATE_29DOF = EntityCfg.InitialStateCfg(
     pos=(0.0, 0.0, 0.9),
     joint_pos={
-        ".*_hip_pitch_joint": -0.312,
-        ".*_knee_joint": 0.669,
-        ".*_ankle_pitch_joint": -0.363,
+        ".*_hip_pitch_joint": -0.3465,
+        ".*_hip_roll_joint": -0.0306,
+        ".*_hip_yaw_joint": -0.2425,
+        ".*_knee_joint": 0.5,
+        ".*_ankle_pitch_joint": -0.25,
         # Upper body default pose (natural standing)
         "left_shoulder_pitch_joint": 0.2,
         "right_shoulder_pitch_joint": 0.2,

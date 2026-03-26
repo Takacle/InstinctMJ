@@ -50,7 +50,7 @@ class AmpAlgoCfg(InstinctRlPpoAlgorithmCfg):
             "nonlinearity": "ReLU",
         }
     )
-    discriminator_reward_coef: float = 0.25  # Restore to baseline
+    discriminator_reward_coef: float = 0.25
     discriminator_reward_type: str = "quad"
     discriminator_loss_func: str = "MSELoss"
     discriminator_gradient_penalty_coef: float = 5.0
@@ -90,16 +90,3 @@ class V11ParkourPPORunnerCfg(InstinctRlOnPolicyRunnerCfg):
     empirical_normalization: bool = False
     policy: object = field(default_factory=lambda: MoEPolicyCfg())
     algorithm: object = field(default_factory=lambda: AmpAlgoCfg())
-
-
-@dataclass(kw_only=True)
-class AmpBaselineAlgoCfg(AmpAlgoCfg):
-    """Baseline algorithm config — full AMP style weight (control group)."""
-    discriminator_reward_coef: float = 0.25  # original value, no Plan-B suppression
-
-
-@dataclass(kw_only=True)
-class V11ParkourBaselinePPORunnerCfg(V11ParkourPPORunnerCfg):
-    """Runner config for the baseline control group experiment."""
-    experiment_name: str = "v11_parkour_baseline"
-    algorithm: object = field(default_factory=lambda: AmpBaselineAlgoCfg())

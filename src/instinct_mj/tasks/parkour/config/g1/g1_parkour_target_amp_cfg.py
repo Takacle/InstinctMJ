@@ -435,7 +435,7 @@ def instinct_g1_parkour_amp_env_cfg(
                 "history_skip_frames": 5,
                 "num_output_frames": 8,
                 "delayed_frame_ranges": (0, 1),
-                "debug_vis": False,
+                "debug_vis": True,
             },
             noise=None,
         ),
@@ -500,7 +500,7 @@ def instinct_g1_parkour_amp_env_cfg(
                 "history_skip_frames": 5,
                 "num_output_frames": 8,
                 "delayed_frame_ranges": (0, 1),
-                "debug_vis": False,
+                "debug_vis": True,
             },
             noise=None,
         ),
@@ -916,6 +916,8 @@ def instinct_g1_parkour_amp_env_cfg(
         cfg.commands["base_velocity"].patch_vis = False
         cfg.terminations["root_height"] = None
         cfg.events["physics_material"] = None
+        camera_sensor = next(sensor_cfg for sensor_cfg in cfg.scene.sensors if sensor_cfg.name == "camera")
+        camera_sensor.debug_vis = True
         cfg.events["reset_robot_joints"].params = {
             "position_range": (0.0, 0.0),
             "velocity_range": (0.0, 0.0),
