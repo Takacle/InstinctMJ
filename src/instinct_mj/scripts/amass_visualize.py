@@ -36,7 +36,7 @@ class VisualizeConfig:
     """Configuration for AMASS motion visualization."""
 
     # Path to AMASS dataset root or a single npz file
-    motion_path: str = os.path.expanduser("~/Datasets/AMASS/")
+    motion_path: str = os.path.expanduser("~/Datasets/hiking/")
     # Optional YAML with selected motion files
     selection_yaml: str | None = None
     # Number of environments

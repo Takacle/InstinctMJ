@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 import torch
 from mjlab.managers import SceneEntityCfg
 from mjlab.sensor import ContactSensor, RayCastSensor
-from mjlab.utils.lab_api.math import quat_apply_inverse
+from mjlab.utils.lab_api.math import quat_apply, quat_apply_inverse
 
 from instinct_mj.envs.mdp.rewards.regularizations import (
     applied_torque_limits_by_ratio as _applied_torque_limits_by_ratio_general,
@@ -194,6 +194,54 @@ def feet_orientation_contact(
     )
 
     return torch.sum(orientation_error * in_contact.float(), dim=1)
+
+
+def feet_heading_align(
+    env: ManagerBasedRlEnv,
+    sensor_name: str,
+    trunk_cfg: SceneEntityCfg = SceneEntityCfg("robot", body_names="base_link"),
+    feet_cfg: SceneEntityCfg = SceneEntityCfg("robot", body_names=("left_ankle_roll_link", "right_ankle_roll_link")),
+    contact_force_threshold: float = 1.0,
+) -> torch.Tensor:
+    """Penalize foot forward direction misalignment with trunk heading when in contact.
+
+    Computes the forward direction (+X axis in local frame) of the trunk and each foot,
+    projects onto the world XY plane, and measures the cosine distance (1 - dot product).
+    Returns 0 when perfectly aligned, up to 2 when pointing opposite directions.
+    Only applies the penalty when the foot is in contact with the ground.
+    """
+    asset: Entity = env.scene[trunk_cfg.name]
+    contact_sensor: ContactSensor = env.scene[sensor_name]
+
+    # Forward direction in local frame (+X)
+    forward_local = torch.tensor([[1.0, 0.0, 0.0]], device=asset.data.body_link_quat_w.device)
+
+    # Trunk forward direction projected to world XY
+    trunk_quat = asset.data.body_link_quat_w[:, trunk_cfg.body_ids[0], :]  # (N, 4)
+    trunk_forward = quat_apply(trunk_quat, forward_local.expand(trunk_quat.shape[0], -1))  # (N, 3)
+    trunk_fwd_xy = trunk_forward[:, :2]  # (N, 2)
+    trunk_fwd_xy = trunk_fwd_xy / (torch.linalg.vector_norm(trunk_fwd_xy, dim=-1, keepdim=True) + 1e-8)
+
+    # Feet forward direction projected to world XY
+    feet_quat = asset.data.body_link_quat_w[:, feet_cfg.body_ids, :]  # (N, num_feet, 4)
+    num_envs, num_feet = feet_quat.shape[:2]
+    feet_forward = quat_apply(
+        feet_quat.reshape(-1, 4), forward_local.expand(num_envs * num_feet, -1)
+    ).reshape(num_envs, num_feet, 3)
+    feet_fwd_xy = feet_forward[:, :, :2]  # (N, num_feet, 2)
+    feet_fwd_xy = feet_fwd_xy / (torch.linalg.vector_norm(feet_fwd_xy, dim=-1, keepdim=True) + 1e-8)
+
+    # Cosine distance: 0 = aligned, 2 = opposite
+    dot = torch.sum(trunk_fwd_xy.unsqueeze(1) * feet_fwd_xy, dim=-1)  # (N, num_feet)
+    error = 1.0 - dot
+
+    # Only penalize when foot is in ground contact
+    in_contact = (
+        torch.max(torch.linalg.vector_norm(contact_sensor.data.force_history, dim=-1), dim=2)[0]
+        > contact_force_threshold
+    )
+
+    return torch.sum(error * in_contact.float(), dim=1)
 
 
 def feet_at_plane(

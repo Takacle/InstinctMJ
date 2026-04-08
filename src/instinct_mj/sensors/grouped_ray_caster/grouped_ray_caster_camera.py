@@ -454,11 +454,13 @@ class GroupedRayCasterCamera(GroupedRayCaster):
             stride = max(1, viz_points.shape[0] // max_points)
             viz_points = viz_points[::stride]
 
+        hit_cfg = self.cfg.visualizer_cfg.markers.get("hit", None)
+        hit_color = tuple(getattr(hit_cfg, "color", (1.0, 0.1, 0.1, 0.6))) if hit_cfg else (1.0, 0.1, 0.1, 0.6)
         for point in viz_points:
             visualizer.add_sphere(
                 center=point,
                 radius=point_radius,
-                color=(1.0, 0.1, 0.1, 0.6),
+                color=hit_color,
             )
 
         camera_pos = self._camera_data.pos_w[env_ids]

@@ -66,7 +66,7 @@ class AmpAlgoCfg(InstinctRlPpoAlgorithmCfg):
     value_loss_coef: float = 1.0
     use_clipped_value_loss: bool = True
     clip_param: float = 0.2
-    entropy_coef: float = 0.006
+    entropy_coef: float = 0.004
     num_learning_epochs: int = 5
     num_mini_batches: int = 4
     learning_rate: float = 1.0e-3
@@ -82,7 +82,7 @@ class V11ParkourPPORunnerCfg(InstinctRlOnPolicyRunnerCfg):
     num_steps_per_env: int = 24
     policy_observation_group: str = "policy"
     critic_observation_group: str = "critic"
-    max_iterations: int = 100000
+    max_iterations: int = 40000
     save_interval: int = 1000
     experiment_name: str = "v11_parkour"
     resume: bool = False

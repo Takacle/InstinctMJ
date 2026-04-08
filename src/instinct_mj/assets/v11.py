@@ -42,7 +42,7 @@ from instinct_mj.actuators import DelayedInstinctActuatorCfg, InstinctActuatorCf
 
 __file_dir__ = os.path.dirname(os.path.realpath(__file__))
 
-V11_XML_PATH: str = os.path.join(__file_dir__, "resources/v11/xml/v11_v4.xml")
+V11_XML_PATH: str = os.path.join(__file_dir__, "resources/v11/xml/v11.xml")
 V11_MESHES_DIR: str = os.path.join(__file_dir__, "resources/v11/meshes")
 
 

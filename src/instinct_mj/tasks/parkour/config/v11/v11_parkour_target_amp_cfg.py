@@ -75,7 +75,7 @@ from instinct_mj.utils.noise import CropAndResizeCfg, DepthNormalizationCfg, Gau
 
 __file_dir__ = os.path.dirname(os.path.realpath(__file__))
 # NOTE: Change this to your local parkour dataset root before training / play.
-_PARKOUR_DATASET_DIR = os.path.expanduser("~/Instinct-mjlab/Datasets/hiking-in-the-wild_Data&Model/data&model/parkour_motion_reference/")
+_PARKOUR_DATASET_DIR = os.path.expanduser("~/Instinct-mjlab/Datasets/npz/")
 
 
 # ---------------------------------------------------------------------------
@@ -89,9 +89,7 @@ class AmassMotionCfg(AmassMotionCfgBase):
 
     path: str = _PARKOUR_DATASET_DIR
     retargetting_func: object | None = None
-    filtered_motion_selection_filepath: str | None = os.path.join(
-        _PARKOUR_DATASET_DIR, "parkour_motion_without_run.yaml"
-    )
+    filtered_motion_selection_filepath: str | None = None  # use all *retargeted.npz in path
     motion_start_from_middle_range: list[float] = field(default_factory=lambda: [0.0, 0.9])
     motion_start_height_offset: float = 0.0
     ensure_link_below_zero_ground: bool = False
@@ -170,7 +168,9 @@ def instinct_v11_parkour_amp_env_cfg(
     cfg.scene.num_envs = 2048
     cfg.scene.env_spacing = 2.5
     cfg.episode_length_s = 20.0
-    cfg.sim.nconmax = 192
+    # V11 multi-capsule barefoot produces more contacts than G1; cap at 256 to
+    # prevent unbounded buffer growth on hard terrain (CUDA 702 timeout).
+    cfg.sim.nconmax = 256
     cfg.sim.njmax = 700
     cfg.sim.mujoco.iterations = 10
     cfg.sim.mujoco.ls_iterations = 20
@@ -245,14 +245,14 @@ def instinct_v11_parkour_amp_env_cfg(
             entity_name="robot",
             body_names=".*_ankle_roll_link",
             points_generator=Grid3dPointsGeneratorCfg(
-                x_min=-0.06,   # heel capsule tip at x=-0.070 (center -0.062, r=0.008) + 5mm margin
-                x_max=0.15,     # toe capsule tip at x=+0.176 (center 0.17, r=0.006) + 4mm margin
-                x_num=16,       # ~1.6 cm spacing over 25.5 cm foot length
-                y_min=-0.04,    # capsule half-extent ±0.0395 (half-len 0.0315 + r 0.008)
+                x_min=-0.06,   # heel capsule tip at x=-0.068
+                x_max=0.17,    # toe capsule tip at x=+0.176; was 0.12 — extended to cover full toe
+                x_num=12,      # ~2.1 cm spacing over 23 cm foot range
+                y_min=-0.04,   # capsule half-extent ±0.042
                 y_max=0.04,
                 y_num=5,
-                z_min=-0.075,   # capsule bottom at z=-0.063 (center -0.055, r=0.008) + 2mm margin
-                z_max=-0.04,   # capsule top at z=-0.047; sample contact zone only
+                z_min=-0.073,  # capsule bottom at z=-0.067; was -0.055 — extended to cover full collision depth
+                z_max=-0.023,  # extended above foot to ankle region; matches G1-shoe coverage for edge early-warning
                 z_num=2,
             ),
             debug_vis=False,
@@ -275,7 +275,7 @@ def instinct_v11_parkour_amp_env_cfg(
         ),
         NoisyGroupedRayCasterCameraCfg(
             name="camera",
-            frame=ObjRef(type="body", name="waist_pitch_link", entity="robot"),
+            frame=ObjRef(type="body", name="head_pitch_link", entity="robot"),
             pattern=PinholeCameraPatternCfg(
                 width=64,
                 height=36,
@@ -286,14 +286,13 @@ def instinct_v11_parkour_amp_env_cfg(
             vertical_aperture=2 * math.tan(math.radians(58.29) / 2.0),
             ray_alignment="yaw",
             offset=NoisyGroupedRayCasterCameraCfg.OffsetCfg(
-                # V11 head camera offset from waist_pitch_link (world convention):
-                # head_yaw_link z=0.4375 + head_pitch_link z=0.142 + camera z≈0.054 = 0.634
+                # V11 camera offset from head_pitch_link (world convention):
+                # Small offset to actual camera position on the head
                 pos=(
-                    0.05,
+                    0.025,
                     0.005,
-                    0.634,
+                    0.054,
                 ),
-                # pos=(0.0487988662332928, 0.01, 0.4378029937970051),
                 rot=(
                     0.9135367613482678,
                     0.004363309284746571,
@@ -586,7 +585,7 @@ def instinct_v11_parkour_amp_env_cfg(
             weight=-0.5,
             params={"command_name": "base_velocity"},
         ),
-        "is_alive": RewardTermCfg(func=envs_mdp.is_alive, weight=3.0),
+        "is_alive": RewardTermCfg(func=envs_mdp.is_alive, weight=2.0),
         "stand_still": RewardTermCfg(
             func=parkour_mdp.stand_still,
             weight=-0.3,
@@ -595,8 +594,21 @@ def instinct_v11_parkour_amp_env_cfg(
         # ---------- Regularization rewards ----------
         "volume_points_penetration": RewardTermCfg(
             func=parkour_mdp.volume_points_penetration,
-            weight=-4.0,
+            weight=-2.0,
             params={"sensor_name": "leg_volume_points"},
+        ),
+        "step_safety": RewardTermCfg(
+            func=parkour_mdp.step_safety,
+            weight=0.5,
+            params={
+                "volume_points_cfg": SceneEntityCfg(name="leg_volume_points"),
+                "contact_forces_cfg": SceneEntityCfg(
+                    "contact_forces",
+                    body_ids=(0, 1),
+                ),
+                "epsilon": 1e-5,
+                "once": False,
+            },
         ),
         "feet_air_time": RewardTermCfg(
             func=parkour_mdp.feet_air_time,
@@ -619,16 +631,16 @@ def instinct_v11_parkour_amp_env_cfg(
                 "threshold": 1.0,
             },
         ),
-        "joint_deviation_hip": RewardTermCfg(
-            func=parkour_mdp.joint_deviation_square,
-            weight=-0.5,
-            params={
-                "asset_cfg": SceneEntityCfg(
-                    "robot",
-                    joint_names=(".*_hip_yaw_joint", ".*_hip_roll_joint"),
-                )
-            },
-        ),
+        # "joint_deviation_hip": RewardTermCfg(
+        #     func=parkour_mdp.joint_deviation_square,
+        #     weight=-0.5,
+        #     params={
+        #         "asset_cfg": SceneEntityCfg(
+        #             "robot",
+        #             joint_names=(".*_hip_yaw_joint", ".*_hip_roll_joint"),
+        #         )
+        #     },
+        # ),
         "ang_vel_xy_l2": RewardTermCfg(func=parkour_mdp.ang_vel_xy_l2, weight=-0.05),
         "dof_torques_l2": RewardTermCfg(
             func=parkour_mdp.joint_torques_l2,
@@ -669,9 +681,21 @@ def instinct_v11_parkour_amp_env_cfg(
                 ),
             },
         ),
+        # "feet_heading_align": RewardTermCfg(
+        #     func=parkour_mdp.feet_heading_align,
+        #     weight=-0.3,
+        #     params={
+        #         "sensor_name": "contact_forces",
+        #         "trunk_cfg": SceneEntityCfg("robot", body_names="base_link"),
+        #         "feet_cfg": SceneEntityCfg(
+        #             "robot",
+        #             body_names=("left_ankle_roll_link", "right_ankle_roll_link"),
+        #         ),
+        #     },
+        # ),
         "feet_at_plane": RewardTermCfg(
             func=parkour_mdp.feet_at_plane,
-            weight=-0.1,
+            weight=-0.3,
             params={
                 "contact_sensor_name": "contact_forces",
                 "left_height_scanner_name": "left_height_scanner",
@@ -680,7 +704,7 @@ def instinct_v11_parkour_amp_env_cfg(
                     "robot",
                     body_names=("left_ankle_roll_link", "right_ankle_roll_link"),
                 ),
-                "height_offset": 0.035,
+                "height_offset": 0.05,
             },
         ),
         "feet_close_xy": RewardTermCfg(
@@ -848,7 +872,7 @@ def instinct_v11_parkour_amp_env_cfg(
         cfg.events["register_virtual_obstacles"].params["enable_debug_vis"] = False
         cfg.commands["base_velocity"].debug_vis = True
         cfg.commands["base_velocity"].patch_vis = False
-        cfg.terminations["root_height"] = None
+        # cfg.terminations["root_height"] = None
         cfg.events["physics_material"] = None
         cfg.events["reset_robot_joints"].params = {
             "position_range": (0.0, 0.0),
