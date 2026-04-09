@@ -32,6 +32,7 @@ class PlayConfig:
     motion_file: str | None = None
     registry_name: str | None = None
     checkpoint_file: str | None = None
+    checkpoint: int | None = None
     load_run: str | None = None
     checkpoint_pattern: str | None = None
     num_envs: int | None = None
@@ -233,6 +234,40 @@ def _resolve_checkpoint(
     run_regex = cfg.load_run if cfg.load_run not in (None, "") else agent_cfg.load_run
     if run_regex in (None, ""):
         run_regex = ".*"
+
+    # --checkpoint N: resolve checkpoint by iteration number (e.g. 8000 → model_8000.pt)
+    if cfg.checkpoint is not None:
+        if not log_root_path.exists():
+            raise ValueError(f"Log path does not exist: {log_root_path}")
+
+        target_name = f"model_{cfg.checkpoint}.pt"
+        candidate_runs: list[Path] = []
+        for run in log_root_path.iterdir():
+            if not run.is_dir():
+                continue
+            if run.name == "wandb_checkpoints":
+                continue
+            if run_regex == ".*" and run.name == "_play":
+                continue
+            if re.match(run_regex, run.name):
+                candidate_runs.append(run)
+
+        if len(candidate_runs) == 0:
+            raise ValueError(f"No run directories found in {log_root_path} matching '{run_regex}'")
+        candidate_runs.sort()
+
+        for run_path in reversed(candidate_runs):
+            target = run_path / target_name
+            if target.exists():
+                print(f"[INFO] Resolved checkpoint for {task_id}: {target}")
+                return target
+
+        raise ValueError(
+            f"Checkpoint '{target_name}' not found in matching runs.\n"
+            f"  log_path: {log_root_path}\n"
+            f"  run_regex: {run_regex}"
+        )
+
     checkpoint_regex = cfg.checkpoint_pattern if cfg.checkpoint_pattern is not None else agent_cfg.load_checkpoint
     if checkpoint_regex in (None, ""):
         checkpoint_regex = "model_.*.pt"

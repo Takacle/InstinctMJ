@@ -247,7 +247,7 @@ def instinct_v11_parkour_amp_env_cfg(
             points_generator=Grid3dPointsGeneratorCfg(
                 x_min=-0.06,   # heel capsule tip at x=-0.068
                 x_max=0.17,    # toe capsule tip at x=+0.176; was 0.12 — extended to cover full toe
-                x_num=12,      # ~2.1 cm spacing over 23 cm foot range
+                x_num=10,      # ~2.1 cm spacing over 23 cm foot range
                 y_min=-0.04,   # capsule half-extent ±0.042
                 y_max=0.04,
                 y_num=5,
@@ -597,19 +597,6 @@ def instinct_v11_parkour_amp_env_cfg(
             weight=-2.0,
             params={"sensor_name": "leg_volume_points"},
         ),
-        "step_safety": RewardTermCfg(
-            func=parkour_mdp.step_safety,
-            weight=0.5,
-            params={
-                "volume_points_cfg": SceneEntityCfg(name="leg_volume_points"),
-                "contact_forces_cfg": SceneEntityCfg(
-                    "contact_forces",
-                    body_ids=(0, 1),
-                ),
-                "epsilon": 1e-5,
-                "once": False,
-            },
-        ),
         "feet_air_time": RewardTermCfg(
             func=parkour_mdp.feet_air_time,
             weight=0.5,
@@ -704,7 +691,7 @@ def instinct_v11_parkour_amp_env_cfg(
                     "robot",
                     body_names=("left_ankle_roll_link", "right_ankle_roll_link"),
                 ),
-                "height_offset": 0.05,
+                "height_offset": 0.07,
             },
         ),
         "feet_close_xy": RewardTermCfg(
@@ -774,7 +761,7 @@ def instinct_v11_parkour_amp_env_cfg(
             func=parkour_mdp.tracking_exp_vel,
             params={
                 "lin_vel_threshold": (0.3, 0.6),
-                "ang_vel_threshold": (0.0, 0.0),
+                "ang_vel_threshold": (0.3, 0.5),
             },
         ),
     }
