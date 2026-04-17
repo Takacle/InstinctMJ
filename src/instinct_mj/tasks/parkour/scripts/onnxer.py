@@ -38,6 +38,22 @@ def _run_onnx_with_batch_support(
     return session.run(None, {input_name: batched_input})[0]
 
 
+def _load_normalizer(model_dir: str) -> Callable[[np.ndarray], np.ndarray] | None:
+    """Load the observation normalizer exported alongside the ONNX model, if present."""
+    path = os.path.join(model_dir, "policy_normalizer.npz")
+    if not os.path.exists(path):
+        return None
+    data = np.load(path)
+    mean = data["mean"].astype(np.float32)
+    std = data["std"].astype(np.float32)
+    eps = float(data["eps"])
+
+    def normalize(obs: np.ndarray) -> np.ndarray:
+        return (obs - mean) / (std + eps)
+
+    return normalize
+
+
 def load_parkour_onnx_model(
     model_dir: str, get_subobs_func: Callable, depth_shape: tuple, proprio_slice: slice
 ) -> Callable:
@@ -47,15 +63,21 @@ def load_parkour_onnx_model(
     actor = ort.InferenceSession(os.path.join(model_dir, "actor.onnx"), providers=ort_providers)
     encoder_input_name = encoder.get_inputs()[0].name
     actor_input_name = actor.get_inputs()[0].name
+    normalizer = _load_normalizer(model_dir)
 
     def policy(obs: torch.Tensor) -> torch.Tensor:
-        depth_image_input = get_subobs_func(obs)
+        obs_np = obs.cpu().numpy()
+        if normalizer is not None:
+            obs_np = normalizer(obs_np)
+        obs_normalized = torch.from_numpy(obs_np).to(obs.device)
+
+        depth_image_input = get_subobs_func(obs_normalized)
         depth_image_input = depth_image_input.cpu().numpy()
         depth_image_input = depth_image_input.reshape((-1, *depth_shape))
         depth_image_output = _run_onnx_with_batch_support(encoder, encoder_input_name, depth_image_input)
         actor_input = np.concatenate(
             [
-                obs.cpu().numpy()[:, proprio_slice],
+                obs_np[:, proprio_slice],
                 depth_image_output,
             ],
             axis=1,

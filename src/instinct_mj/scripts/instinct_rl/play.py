@@ -381,7 +381,6 @@ def _build_parkour_onnx_policy(
     depth_components = agent_cfg.policy.encoder_configs.depth_encoder.component_names
 
     proprio_components = [
-        "base_lin_vel",
         "base_ang_vel",
         "projected_gravity",
         "velocity_commands",

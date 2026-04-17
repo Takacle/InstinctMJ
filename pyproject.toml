@@ -25,8 +25,9 @@ dependencies = [
   "onnxruntime",
   "pandas",
   "coacd",
-  "mjlab",
+  "mjlab>=1.2.0",
   "instinct_rl",
+  "roboharness",
 ]
 
 [project.scripts]
@@ -41,6 +42,7 @@ instinct-amass-visualize = "instinct_mj.scripts.amass_visualize:main"
 instinct-gmr-to-instinct = "instinct_mj.scripts.GMR_to_instinct:main"
 instinct-motion-metadata = "instinct_mj.scripts.motion_matched_metadata_generator:entry_point"
 instinct-phalp-to-amass = "instinct_mj.scripts.phalp_to_amass:entry_point"
+instinct-play-harness = "instinct_mj.scripts.instinct_rl.play_harness:main"
 
 [project.entry-points."mjlab.tasks"]
 instinct_mj = "instinct_mj.tasks"
@@ -57,6 +59,7 @@ url = "https://pypi.org/simple"
 [tool.uv.sources]
 mjlab = { git = "https://github.com/mujocolab/mjlab.git" }
 instinct_rl = { git = "https://github.com/project-instinct/instinct_rl.git" }
+roboharness = { path = "../../roboharness", editable = true }
 
 [tool.setuptools]
 package-dir = {"" = "src"}
