@@ -404,6 +404,13 @@ def _build_parkour_onnx_policy(
     )
 
 
+_ONNX_RENAME_MAP = {
+    "actor.onnx": "parkour_actor.onnx",
+    "0-depth_encoder.onnx": "parkour_depth_encoder.onnx",
+    "encoder_actor_critic.onnx": "parkour_encoder_actor_critic.onnx",
+}
+
+
 def _export_policy_to_onnx(
     *,
     runner,
@@ -414,6 +421,12 @@ def _export_policy_to_onnx(
     export_dir.mkdir(parents=True, exist_ok=True)
     observations, _ = vec_env.get_observations()
     runner.export_as_onnx(obs=observations, export_model_dir=str(export_dir))
+
+    for src_name, dst_name in _ONNX_RENAME_MAP.items():
+        src = export_dir / src_name
+        if src.exists():
+            src.rename(export_dir / dst_name)
+            print(f"[INFO] Renamed {src_name} -> {dst_name}")
 
     metadata = {
         "task_id": task_id,

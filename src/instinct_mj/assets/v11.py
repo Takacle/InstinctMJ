@@ -87,15 +87,17 @@ DAMPING_6408 = 2.0 * DAMPING_RATIO * ARMATURE_6408 * NATURAL_FREQ
 # ============================================================================
 # BeyondMimic actuator configurations for V11 (12-DOF leg joints)
 #
-# Motor assignment from V1.1 spec sheet:
-#   - hip_pitch/roll, knee: EC-A10020-P1-12  (peak 150, limit 127.5 Nm)
-#   - hip_yaw:              EC-A8112-P1-18   (peak  90, limit  76.5 Nm)
-#   - ankle_pitch/roll:     EC-A4310-P2-36   (peak  36, limit  30.6 Nm)
+# Motor assignment and torque limits aligned with dros-motor SDK:
+#   - hip_pitch/roll, knee: EC-A10020-P1-12  (SDK TAU150, peak 150 Nm)
+#   - hip_yaw:              EC-A8112-P1-18   (SDK TAU90,  peak  90 Nm)
+#   - ankle_pitch/roll:     EC-A4310-P2-36   (SDK TAU30,  peak  30 Nm)
+#
+# effort_limit = 0.85 × SDK peak (85% derating for training margin)
 # ============================================================================
 
 BEYONDMIMIC_V11_LEGS_HIP_PITCH_ROLL_KNEE = InstinctActuatorCfg(
     target_names_expr=(".*_hip_pitch_joint", ".*_hip_roll_joint", ".*_knee_joint"),
-    effort_limit=127.5,
+    effort_limit=127.5,  # 0.85 × 150
     velocity_limit=14.66,
     stiffness=STIFFNESS_10020,
     damping=DAMPING_10020,
@@ -103,18 +105,18 @@ BEYONDMIMIC_V11_LEGS_HIP_PITCH_ROLL_KNEE = InstinctActuatorCfg(
 )
 BEYONDMIMIC_V11_LEGS_HIP_YAW = InstinctActuatorCfg(
     target_names_expr=(".*_hip_yaw_joint",),
-    effort_limit=76.5,
+    effort_limit=76.5,  # 0.85 × 90
     velocity_limit=14.66,
     stiffness=STIFFNESS_8112,
-    damping=DAMPING_8112,
+    damping=5,
     armature=ARMATURE_8112,
 )
 BEYONDMIMIC_V11_FEET = InstinctActuatorCfg(
     target_names_expr=(".*_ankle_pitch_joint", ".*_ankle_roll_joint"),
-    effort_limit=30.6,
+    effort_limit=25.5,  # 0.85 × 30 (SDK TAU30, prev was 30.6 based on 36 Nm spec)
     velocity_limit=9.32,
     stiffness=STIFFNESS_4310,
-    damping=DAMPING_4310,
+    damping=5,
     armature=ARMATURE_4310,
 )
 
@@ -154,11 +156,14 @@ beyondmimic_v11_locomotion_delayed_actuator_cfgs: tuple[ActuatorCfg, ...] = (
 # ============================================================================
 # BeyondMimic actuator configurations for V11 upper body (17 DOF)
 #
-# Motor assignment from V1.1 spec sheet:
-#   waist_yaw:              EC-A8112-P1-18   (peak  90, limit 76.5 Nm)
-#   waist_roll/pitch:       EC-A6408-P2-25   (peak  60, limit 51   Nm)
-#   shoulder_pitch/roll/yaw, elbow: 17Z/17T/17S (peak 80, limit 68 Nm)
-#   wrist_roll/yaw/pitch:   SHD11            (peak 11.5, limit 9.775 Nm)
+# Torque limits aligned with dros-motor SDK:
+#   waist_yaw:              EC-A8112-P1-18   (SDK TAU90,  peak  90 Nm)
+#   waist_roll/pitch:       EC-A6408-P2-25   (SDK TAU60,  peak  60 Nm)
+#   shoulder_pitch/roll/yaw, elbow: TK motor  (SDK float2uint, peak 46.54 Nm)
+#   wrist_roll:             TK motor          (SDK clamp ±200 int16, peak 19.5 Nm)
+#   wrist_pitch/yaw:        TK motor          (SDK clamp ±300 int16, peak 22.0 Nm)
+#
+# effort_limit = 0.85 × SDK peak (85% derating for training margin)
 #
 # NOTE: 17-series and SHD11 armature values not yet available;
 #       arms temporarily use 10020, wrists temporarily use 6408.
@@ -166,18 +171,18 @@ beyondmimic_v11_locomotion_delayed_actuator_cfgs: tuple[ActuatorCfg, ...] = (
 
 BEYONDMIMIC_V11_WAIST_YAW = InstinctActuatorCfg(
     target_names_expr=("waist_yaw_joint",),
-    effort_limit=76.5,
+    effort_limit=76.5,  # 0.85 × 90
     velocity_limit=14.66,
     stiffness=STIFFNESS_8112,
-    damping=DAMPING_8112,
+    damping=5,
     armature=ARMATURE_8112,
 )
 BEYONDMIMIC_V11_WAIST_ROLL_PITCH = InstinctActuatorCfg(
     target_names_expr=("waist_roll_joint", "waist_pitch_joint"),
-    effort_limit=51.0,
+    effort_limit=51.0,  # 0.85 × 60
     velocity_limit=14.66,
     stiffness=STIFFNESS_6408,
-    damping=DAMPING_6408,
+    damping=5,
     armature=ARMATURE_6408,
 )
 BEYONDMIMIC_V11_ARMS = InstinctActuatorCfg(
@@ -187,7 +192,7 @@ BEYONDMIMIC_V11_ARMS = InstinctActuatorCfg(
         ".*_shoulder_yaw_joint",
         ".*_elbow_joint",
     ),
-    effort_limit=68.0,
+    effort_limit=39.5,  # 0.85 × 46.54 (SDK TK shoulder/elbow effective max)
     velocity_limit=14.66,
     stiffness=STIFFNESS_10020,  # TODO: replace with 17-series armature when available
     damping=DAMPING_10020,
@@ -195,7 +200,7 @@ BEYONDMIMIC_V11_ARMS = InstinctActuatorCfg(
 )
 BEYONDMIMIC_V11_WRISTS = InstinctActuatorCfg(
     target_names_expr=(".*_wrist_roll_joint", ".*_wrist_yaw_joint", ".*_wrist_pitch_joint"),
-    effort_limit=9.775,
+    effort_limit=16.6,  # 0.85 × min(19.5, 22.0) = 0.85 × 19.5 ≈ 16.6 (use min for uniform scale)
     velocity_limit=22.0,
     stiffness=STIFFNESS_6408,  # TODO: replace with SHD11 armature when available
     damping=DAMPING_6408,
