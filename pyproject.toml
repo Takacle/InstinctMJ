@@ -33,6 +33,7 @@ dependencies = [
 [project.scripts]
 instinct-train = "instinct_mj.scripts.instinct_rl.train:main"
 instinct-play = "instinct_mj.scripts.instinct_rl.play:main"
+instinct-keyboard-play = "instinct_mj.scripts.instinct_rl.keyboard_play:main"
 instinct-list-envs = "instinct_mj.scripts.list_envs:main"
 instinct-format = "instinct_mj.scripts.format_code:main"
 instinct-depth-probe = "instinct_mj.scripts.depth_probe:main"
@@ -60,6 +61,9 @@ url = "https://pypi.org/simple"
 mjlab = { git = "https://github.com/mujocolab/mjlab.git" }
 instinct_rl = { git = "https://github.com/project-instinct/instinct_rl.git" }
 roboharness = { path = "../../roboharness", editable = true }
+
+[[tool.uv.index]]
+url = "https://pypi.org/simple"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
