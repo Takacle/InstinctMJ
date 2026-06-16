@@ -226,7 +226,7 @@ def _resolve_checkpoint(
 ) -> Path:
     if cfg.checkpoint_file is not None:
         checkpoint = Path(cfg.checkpoint_file).expanduser().resolve()
-        if not checkpoint.exists():
+        if not checkpoint.exists(): 
             raise FileNotFoundError(f"Checkpoint not found: {checkpoint}")
         return checkpoint
 

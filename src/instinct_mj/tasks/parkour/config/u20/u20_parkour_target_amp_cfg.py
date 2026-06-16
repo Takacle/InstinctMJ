@@ -3,7 +3,7 @@
 Adapted from V11 parkour config. Key differences vs V11:
 - 22-DOF full-body model (no ankle pitch/roll, no waist_pitch, no wrist_roll)
 - Foot contact bodies: left_foot_link / right_foot_link (rigid foot, no ankle)
-- Camera mounted at head_link (fixed head, no head_pitch joint)
+- Camera mounted at waist_yaw_link (decoupled from waist_roll, stable torso view)
 - Motion reference uses U20 XML (u20_popsicle.xml) and 22-DOF symmetric mappings
 - AMP discriminator operates on full 22-DOF joint state (joint_names=".*")
 """
@@ -73,7 +73,7 @@ from instinct_mj.terrains.virtual_obstacle.edge_cylinder_cfg import Greedyconcat
 from instinct_mj.utils.noise import CropAndResizeCfg, DepthNormalizationCfg, GaussianBlurNoiseCfg
 
 __file_dir__ = os.path.dirname(os.path.realpath(__file__))
-_PARKOUR_DATASET_DIR = os.path.expanduser("~/Instinct-mjlab/Datasets/u20_npz/")
+_PARKOUR_DATASET_DIR = os.path.expanduser("~/Instinct-mjlab/Datasets/new_u20_npz/")
 
 
 # ---------------------------------------------------------------------------
@@ -92,6 +92,30 @@ class AmassMotionCfg(AmassMotionCfgBase):
     buffer_device: str = "output_device"
     motion_interpolate_func: object = field(default_factory=lambda: motion_interpolate_bilinear)
     velocity_estimation_method: str = "frontward"
+    joint_name_mapping: dict[str, str] | None = field(default_factory=lambda: {
+        "left_hip_pitch_joint": "lleg1_joint",
+        "left_hip_roll_joint": "lleg2_joint",
+        "left_hip_yaw_joint": "lleg3_joint",
+        "left_knee_joint": "lleg4_joint",
+        "right_hip_pitch_joint": "rleg1_joint",
+        "right_hip_roll_joint": "rleg2_joint",
+        "right_hip_yaw_joint": "rleg3_joint",
+        "right_knee_joint": "rleg4_joint",
+        "waist_yaw_joint": "waist1_joint",
+        "waist_roll_joint": "waist2_joint",
+        "left_shoulder_roll_joint": "larm1_joint",
+        "left_shoulder_pitch_joint": "larm2_joint",
+        "left_shoulder_yaw_joint": "larm3_joint",
+        "left_elbow_joint": "larm4_joint",
+        "left_wrist_pitch_joint": "larm5_joint",
+        "left_wrist_yaw_joint": "larm6_joint",
+        "right_shoulder_roll_joint": "rarm1_joint",
+        "right_shoulder_pitch_joint": "rarm2_joint",
+        "right_shoulder_yaw_joint": "rarm3_joint",
+        "right_elbow_joint": "rarm4_joint",
+        "right_wrist_pitch_joint": "rarm5_joint",
+        "right_wrist_yaw_joint": "rarm6_joint",
+    })
 
 
 # NOTE: link_of_interests order must match the link order used in U20 retargeted
@@ -148,7 +172,7 @@ def instinct_u20_parkour_amp_env_cfg(
     # Replace robot entity with U20
     u20_robot_cfg = copy.deepcopy(U20_22DOF_CFG)
     u20_robot_cfg.articulation.actuators = copy.deepcopy(u20_wholebody_delayed_actuator_cfgs)
-    u20_robot_cfg.init_state.pos = (0.0, 0.0, 1.0)
+    u20_robot_cfg.init_state.pos = (0.0, 0.0, 0.92)
     cfg.scene.entities["robot"] = u20_robot_cfg
 
     joint_pos_action: JointPositionActionCfg = cfg.actions["joint_pos"]
@@ -233,13 +257,13 @@ def instinct_u20_parkour_amp_env_cfg(
             body_names=".*_foot_link",
             points_generator=Grid3dPointsGeneratorCfg(
                 x_min=-0.06,
-                x_max=0.10,
+                x_max=0.06,
                 x_num=8,
-                y_min=-0.03,
-                y_max=0.05,
-                y_num=4,
-                z_min=-0.10,
-                z_max=-0.05,
+                y_min=-0.08,
+                y_max=0.10,
+                y_num=10,
+                z_min=-0.09,
+                z_max=-0.07,
                 z_num=2,
             ),
             debug_vis=False,
@@ -262,7 +286,7 @@ def instinct_u20_parkour_amp_env_cfg(
         ),
         NoisyGroupedRayCasterCameraCfg(
             name="camera",
-            frame=ObjRef(type="body", name="head_link", entity="robot"),
+            frame=ObjRef(type="body", name="waist_yaw_link", entity="robot"),
             pattern=PinholeCameraPatternCfg(
                 width=64,
                 height=36,
@@ -273,7 +297,7 @@ def instinct_u20_parkour_amp_env_cfg(
             vertical_aperture=2 * math.tan(math.radians(58.29) / 2.0),
             ray_alignment="yaw",
             offset=NoisyGroupedRayCasterCameraCfg.OffsetCfg(
-                pos=(0.025, 0.005, 0.054),
+                pos=(0.1, 0.005, 0.3775),
                 rot=(
                     0.9135367613482678,
                     0.004363309284746571,
@@ -649,7 +673,7 @@ def instinct_u20_parkour_amp_env_cfg(
                     "robot",
                     body_names=("left_foot_link", "right_foot_link"),
                 ),
-                "height_offset": 0.07,
+                "height_offset": 0.095,
             },
         ),
         "feet_close_xy": RewardTermCfg(

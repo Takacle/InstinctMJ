@@ -112,3 +112,12 @@ class AmassMotionCfg(MotionBufferCfg):
 
     ensure_link_below_zero_ground: bool = True
     """ Whether to ensure no link is below zero ground by raising the base position if necessary. """
+
+    joint_name_mapping: dict[str, str] | None = None
+    """ Optional mapping from sim joint names to motion data joint names.
+    If provided, each sim joint name will be mapped via this dict before
+    searching in the motion data's ``joint_names`` list.  Use this when
+    the retargeted motion files use a different naming convention than
+    the simulation robot (e.g. URDF-style ``lleg1_joint`` vs XML-style
+    ``left_hip_pitch_joint``).
+    """

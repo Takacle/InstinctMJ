@@ -19,7 +19,7 @@ def _build_cfg(play: bool = False):
 
 def _build_runner_cfg():
     from .agents.instinct_rl_amp_cfg import U20ParkourPPORunnerCfg
-    return U20ParkourPPORunnerCfg
+    return U20ParkourPPORunnerCfg()
 
 
 register_instinct_task(

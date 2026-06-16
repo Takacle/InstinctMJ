@@ -567,7 +567,11 @@ class AmassMotion(MotionBuffer):
         root_quat = torch.as_tensor(raw_data["base_quat_w"], device=self.buffer_device, dtype=torch.float)
 
         # qpos_sim = qpos[retargetted_joints_to_output_joints_ids]
-        retargetted_joints_to_output_joints_ids = [joint_names.index(j_name) for j_name in self.sim_joint_names]
+        if self.cfg.joint_name_mapping:
+            lookup_names = [self.cfg.joint_name_mapping[j] for j in self.sim_joint_names]
+        else:
+            lookup_names = self.sim_joint_names
+        retargetted_joints_to_output_joints_ids = [joint_names.index(j_name) for j_name in lookup_names]
         joint_pos = joint_pos[:, retargetted_joints_to_output_joints_ids]
 
         return self._pack_retargetted_motion_sequence(
