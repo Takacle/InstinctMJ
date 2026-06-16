@@ -83,7 +83,7 @@ class U20ParkourPPORunnerCfg(InstinctRlOnPolicyRunnerCfg):
     policy_observation_group: str = "policy"
     critic_observation_group: str = "critic"
     max_iterations: int = 30000
-    save_interval: int = 1000
+    save_interval: int = 10
     experiment_name: str = "u20_parkour"
     resume: bool = False
     load_run: str = "^(?!_play$).*"

@@ -1,0 +1,215 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<mujoco model="new_u20_0420">
+  <compiler angle="radian" meshdir="meshes/" autolimits="true" discardvisual="false"/>
+  <default>
+    <joint damping="0.5" armature="0.01" frictionloss="0.1"/>
+    <geom group="3" contype="1" conaffinity="1"/>
+  </default>
+  <asset>
+    <mesh name="base_link" file="base_link.STL"/>
+    <mesh name="lleg1_link" file="lleg1_link.STL"/>
+    <mesh name="lleg2_link" file="lleg2_link.STL"/>
+    <mesh name="lleg3_link" file="lleg3_link.STL"/>
+    <mesh name="lleg4_link" file="lleg4_link.STL"/>
+    <mesh name="lleg5_link" file="lleg5_link.STL"/>
+    <mesh name="rleg1_link" file="rleg1_link.STL"/>
+    <mesh name="rleg2_link" file="rleg2_link.STL"/>
+    <mesh name="rleg3_link" file="rleg3_link.STL"/>
+    <mesh name="rleg4_link" file="rleg4_link.STL"/>
+    <mesh name="rleg5_link" file="rleg5_link.STL"/>
+    <mesh name="waist1_link" file="waist1_link.STL"/>
+    <mesh name="waist2_link" file="waist2_link.STL"/>
+    <mesh name="head_link" file="head_link.STL"/>
+    <mesh name="larm1_link" file="larm1_link.STL"/>
+    <mesh name="larm2_link" file="larm2_link.STL"/>
+    <mesh name="larm3_link" file="larm3_link.STL"/>
+    <mesh name="larm4_link" file="larm4_link.STL"/>
+    <mesh name="larm5_link" file="larm5_link.STL"/>
+    <mesh name="larm6_link" file="larm6_link.STL"/>
+    <mesh name="rarm1_link" file="rarm1_link.STL"/>
+    <mesh name="rarm2_link" file="rarm2_link.STL"/>
+    <mesh name="rarm3_link" file="rarm3_link.STL"/>
+    <mesh name="rarm4_link" file="rarm4_link.STL"/>
+    <mesh name="rarm5_link" file="rarm5_link.STL"/>
+    <mesh name="rarm6_link" file="rarm6_link.STL"/>
+    <texture type="skybox" builtin="gradient" rgb1="1 1 1" rgb2="1 1 1" width="800" height="800"/>
+    <texture type="2d" name="groundplane" builtin="checker" mark="edge" rgb1="1 1 1" rgb2="1 1 1" markrgb="0 0 0" width="300" height="300"/>
+    <material name="groundplane" texture="groundplane" texuniform="true" texrepeat="5 5" reflectance="0"/>
+    <texture type="skybox" builtin="gradient" rgb1=".4 .5 .6" rgb2="0 0 0" width="100" height="100"/>
+    <texture builtin="flat" height="1278" mark="cross" markrgb="1 1 1" name="texgeom" random="0.01" rgb1="0.8 0.6 0.4" rgb2="0.8 0.6 0.4" type="cube" width="127"/>
+    <texture name="texplane" builtin="checker" height="512" width="512" rgb1=".2 .3 .4" rgb2=".1 .15 .2" type="2d"/>
+    <material name="MatPlane" reflectance="0.5" shininess="0.01" specular="0.1" texrepeat="1 1" texture="texplane" texuniform="true"/>
+    <material name="geom" texture="texgeom" texuniform="true"/>
+  </asset>
+  <worldbody>
+    <body name="base_link" pos="0 0 0.924">
+      <inertial pos="-0.0094 0 0.0157" mass="7.5069" fullinertia="0.0925 0.0597 0.0648 0 0.0091 0"/>
+      <joint name="floating_base_joint" type="free" limited="false" actuatorfrclimited="false"/>
+      <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.75294 0.75294 0.75294 1" mesh="base_link"/>
+      <geom name="base_link_collision" type="mesh" mesh="base_link" rgba="0.2 0.2 0.2 0.15" priority="1" friction="0.6 0.005 0.0001"/>
+      <site name="imu" size="0.01" pos="0 0 0"/>
+      <body name="lleg1_link" pos="0 0.12 0">
+        <inertial pos="-0.002 0.0686 0" mass="2.9727" fullinertia="0.0041 0.0026 0.0042 0.0002 0 0"/>
+        <joint name="lleg1_joint" pos="0 0 0" axis="0 1 0" range="-1.4 1.4" actuatorfrcrange="-200 200"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.752941176471 0.752941176471 0.752941176471 1" mesh="lleg1_link"/>
+        <body name="lleg2_link" pos="0 0.081 0">
+          <inertial pos="0.0005 0 -0.0962" mass="4.1429" fullinertia="0.0137 0.0187 0.0103 0 -0.0005 0"/>
+          <joint name="lleg2_joint" pos="0 0 0" axis="1 0 0" range="-0.05 1.4" actuatorfrcrange="-200 200"/>
+          <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.752941176471 0.752941176471 0.752941176471 1" mesh="lleg2_link"/>
+          <body name="lleg3_link" pos="0.001 0 -0.16">
+            <inertial pos="-0.0009 -0.0016 -0.1771" mass="5.0688" fullinertia="0.0448 0.0403 0.0122 0 -0.0004 0.0005"/>
+            <joint name="lleg3_joint" pos="0 0 0" axis="0 0 1" range="-0.5 0.5" actuatorfrcrange="-200 200"/>
+            <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.752941176471 0.752941176471 0.752941176471 1" mesh="lleg3_link"/>
+            <geom name="lleg3_link_collision" pos="0 0 -0.05" type="cylinder" size="0.05 0.04" rgba="0.2 0.2 0.2 1" priority="1" friction="0.6 0.005 0.0001"/>
+            <body name="lleg4_link" pos="0 0 -0.231">
+              <inertial pos="0.0068 0.0062 -0.3113" mass="6.9416" fullinertia="0.1986 0.1964 0.0537 0.0102 -0.0036 -0.0046"/>
+              <joint name="lleg4_joint" pos="0 0 0" axis="0 1 0" range="-0.1 2.3" actuatorfrcrange="-200 200"/>
+              <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.752941176471 0.752941176471 0.752941176471 1" mesh="lleg4_link"/>
+              <geom name="lleg4_link_collision" pos="0 0 -0.16" type="cylinder" size="0.07 0.18" rgba="0.2 0.2 0.2 1" priority="1" friction="0.6 0.005 0.0001"/>
+              <body name="lleg5_link" pos="0 0 -0.45">
+                <inertial pos="0 0.017 0" mass="7.7653" fullinertia="0.075 0.0327 0.075 0 0 0"/>
+                <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.752941176471 0.752941176471 0.752941176471 1" mesh="lleg5_link"/>
+                <geom name="lleg5_link_collision" pos="0 0.012763 0.000106" quat="0.70710679066 0.707106771713 0 0" type="cylinder" size="0.085 0.11" rgba="0.2 0.2 0.2 1" priority="1" friction="0.6 0.005 0.0001"/>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+      <body name="rleg1_link" pos="0 -0.12 0">
+        <inertial pos="-0.002 -0.0686 0" mass="2.9727" fullinertia="0.0093 0.0065 0.0082 -0.0002 0 0"/>
+        <joint name="rleg1_joint" pos="0 0 0" axis="0 1 0" range="-1.4 1.4" actuatorfrcrange="-200 200"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.752941176471 0.752941176471 0.752941176471 1" mesh="rleg1_link"/>
+        <body name="rleg2_link" pos="0 -0.081 0">
+          <inertial pos="0.0005 0 -0.0962" mass="4.1429" fullinertia="0.0177 0.0227 0.0155 0 -0.0005 0"/>
+          <joint name="rleg2_joint" pos="0 0 0" axis="1 0 0" range="-1.4 0.05" actuatorfrcrange="-200 200"/>
+          <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.752941176471 0.752941176471 0.752941176471 1" mesh="rleg2_link"/>
+          <body name="rleg3_link" pos="0.001 0 -0.16">
+            <inertial pos="-0.0009 0.0016 -0.1771" mass="5.0688" fullinertia="0.0488 0.0455 0.0162 0 -0.0004 -0.0005"/>
+            <joint name="rleg3_joint" pos="0 0 0" axis="0 0 1" range="-0.5 0.5" actuatorfrcrange="-200 200"/>
+            <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.752941176471 0.752941176471 0.752941176471 1" mesh="rleg3_link"/>
+            <geom name="rleg3_link_collision" pos="0 0 -0.05" type="cylinder" size="0.05 0.04" rgba="0.2 0.2 0.2 1" priority="1" friction="0.6 0.005 0.0001"/>
+            <body name="rleg4_link" pos="0 0 -0.231">
+              <inertial pos="0.0068 -0.0062 -0.3113" mass="6.9416" fullinertia="0.2025 0.2016 0.0577 -0.0102 -0.0036 0.0046"/>
+              <joint name="rleg4_joint" pos="0 0 0" axis="0 1 0" range="-0.1 2.3" actuatorfrcrange="-200 200"/>
+              <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.752941176471 0.752941176471 0.752941176471 1" mesh="rleg4_link"/>
+              <geom name="rleg4_link_collision" pos="0 0 -0.16" type="cylinder" size="0.07 0.18" rgba="0.2 0.2 0.2 1" priority="1" friction="0.6 0.005 0.0001"/>
+              <body name="rleg5_link" pos="0 0 -0.45">
+                <inertial pos="0 -0.017 0" mass="7.7653" fullinertia="0.075 0.0327 0.075 0 0 0"/>
+                <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.752941176471 0.752941176471 0.752941176471 1" mesh="rleg5_link"/>
+                <geom name="rleg5_link_collision" pos="0 -0.0127632 0.0001056" quat="0.70710679066 0.707106771713 0 0" type="cylinder" size="0.085 0.11" rgba="0.2 0.2 0.2 1" priority="1" friction="0.6 0.005 0.0001"/>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+      <body name="waist1_link" pos="0 0 0.23">
+        <inertial pos="-0.1579 -0.0033 0.142" mass="11.8463" fullinertia="0.7791 0.9723 0.992 0.0086 -0.195 -0.0029"/>
+        <joint name="waist1_joint" type="hinge" pos="0 0 0" axis="0 1 0" range="-1.57079632679 1.57079632679" actuatorfrcrange="-200 200"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="1 1 1 1" mesh="waist1_link"/>
+        <geom name="waist1_link_collision" type="mesh" mesh="waist1_link" rgba="0.2 0.2 0.2 0.15" priority="1" friction="0.6 0.005 0.0001"/>
+        <body name="waist2_link" pos="0 0 0.18">
+          <inertial pos="-0.0016 0 0.1227" mass="6.6034" fullinertia="0.3998 0.1988 0.4139 0 -0.0513 0"/>
+          <joint name="waist2_joint" type="hinge" pos="0 0 0" axis="0 0 1" range="-1.57079632679 1.57079632679" actuatorfrcrange="-200 200"/>
+          <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.752941176471 0.752941176471 0.752941176471 1" mesh="waist2_link"/>
+          <geom name="waist2_link_collision" type="mesh" mesh="waist2_link" rgba="0.2 0.2 0.2 0.15" priority="1" friction="0.6 0.005 0.0001"/>
+          <body name="head_link" pos="0 0 0.1435">
+            <inertial pos="0.0313 0 0.1081" mass="0.5958" fullinertia="0.0038 0.0037 0.0027 0 0.0001 0"/>
+            <joint name="head_joint" type="hinge" pos="0 0 0" axis="0 0 1" range="-1.57079632679 1.57079632679" actuatorfrcrange="-200 200"/>
+            <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.796078431373 0.823529411765 0.937254901961 1" mesh="head_link"/>
+            <geom name="head_link_collision" type="mesh" mesh="head_link" rgba="0.2 0.2 0.2 0.15" priority="1" friction="0.6 0.005 0.0001"/>
+          </body>
+          <body name="larm1_link" pos="0 0.29 0.1615">
+            <inertial pos="0 0.02 -0.0703" mass="1.3714" fullinertia="0.0023 0.0056 0.0039 0 0 -0.0001"/>
+            <joint name="larm1_joint" pos="0 0 0" axis="1 0 0" range="0 2.6"/>
+            <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.898039215686 0.917647058824 0.929411764706 1" mesh="larm1_link"/>
+            <geom name="larm1_link_collision" type="mesh" mesh="larm1_link" rgba="0.2 0.2 0.2 0.15" priority="1" friction="0.6 0.005 0.0001"/>
+            <body name="larm2_link" pos="0 0.101 -0.07">
+              <inertial pos="0 0 0" mass="2.3741" fullinertia="0.0066 0.0074 0.0067 0 0 0"/>
+              <joint name="larm2_joint" pos="0 0 0" axis="0 1 0" range="-1.57 0.8"/>
+              <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.898039215686 0.917647058824 0.929411764706 1" mesh="larm2_link"/>
+              <geom name="larm2_link_collision" type="mesh" mesh="larm2_link" rgba="0.2 0.2 0.2 0.15" priority="1" friction="0.6 0.005 0.0001"/>
+              <body name="larm3_link" pos="0 0 -0.0775">
+                <inertial pos="-0.0902 0.0496 -0.137" mass="8.4889" fullinertia="0.4734 0.4767 0.1299 -0.0063 -0.1091 0.0149"/>
+                <joint name="larm3_joint" pos="0 0 0" axis="0 0 1" range="-3.14 3.14"/>
+                <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.752941176471 0.752941176471 0.752941176471 1" mesh="larm3_link"/>
+                <geom name="larm3_link_collision" type="mesh" mesh="larm3_link" rgba="0.2 0.2 0.2 0.15" priority="1" friction="0.6 0.005 0.0001"/>
+                <body name="larm4_link" pos="0 0 -0.24">
+                  <inertial pos="0.0318 0 -0.08" mass="1.7898" fullinertia="0.0214 0.0203 0.0034 0 -0.0027 0"/>
+                  <joint name="larm4_joint" pos="0 0 0" axis="1 0 0" range="-1.57 1.57"/>
+                  <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.898039215686 0.917647058824 0.929411764706 1" mesh="larm4_link"/>
+                  <geom name="larm4_link_collision" type="mesh" mesh="larm4_link" rgba="0.2 0.2 0.2 0.15" priority="1" friction="0.6 0.005 0.0001"/>
+                  <body name="larm5_link" pos="0 0 -0.215">
+                    <inertial pos="-0.0026 0 0.0447" mass="1.1747" fullinertia="0.003 0.0026 0.0014 0 -0.0002 0"/>
+                    <joint name="larm5_joint" pos="0 0 0" axis="1 0 0" range="-3.14 3.14"/>
+                    <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="1 1 1 1" mesh="larm5_link"/>
+                    <geom name="larm5_link_collision" type="mesh" mesh="larm5_link" rgba="0.2 0.2 0.2 0.15" priority="1" friction="0.6 0.005 0.0001"/>
+                    <body name="larm6_link" pos="-0.0005 0 -0.032">
+                      <inertial pos="0 0 -0.034" mass="0.6447" fullinertia="0.0006 0.0006 0.0006 0 0 0"/>
+                      <joint name="larm6_joint" pos="0 0 0" axis="0 0 1" range="-3.14 3.14"/>
+                      <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="1 1 1 1" mesh="larm6_link"/>
+                      <geom name="larm6_link_collision" type="mesh" mesh="larm6_link" rgba="0.2 0.2 0.2 0.15" priority="1" friction="0.6 0.005 0.0001"/>
+                    </body>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+          <body name="rarm1_link" pos="0 -0.29 0.1615">
+            <inertial pos="0 -0.02 -0.0703" mass="1.3714" fullinertia="0.0023 0.0056 0.0039 0 0 0.0001"/>
+            <joint name="rarm1_joint" pos="0 0 0" axis="1 0 0" range="-2.6 0"/>
+            <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.792156862745 0.819607843137 0.933333333333 1" mesh="rarm1_link"/>
+            <geom name="rarm1_link_collision" type="mesh" mesh="rarm1_link" rgba="0.2 0.2 0.2 0.15" priority="1" friction="0.6 0.005 0.0001"/>
+            <body name="rarm2_link" pos="0 -0.101 -0.07">
+              <inertial pos="0 0 0" mass="2.3741" fullinertia="0.0066 0.0074 0.0067 0 0 0"/>
+              <joint name="rarm2_joint" pos="0 0 0" axis="0 1 0" range="-1.57 0.8"/>
+              <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.792156862745 0.819607843137 0.933333333333 1" mesh="rarm2_link"/>
+              <geom name="rarm2_link_collision" type="mesh" mesh="rarm2_link" rgba="0.2 0.2 0.2 0.15" priority="1" friction="0.6 0.005 0.0001"/>
+              <body name="rarm3_link" pos="0 0 -0.0775">
+                <inertial pos="-0.0902 -0.0496 -0.137" mass="8.4889" fullinertia="0.4734 0.4767 0.1299 0.0063 -0.1091 -0.0149"/>
+                <joint name="rarm3_joint" pos="0 0 0" axis="0 0 1" range="-3.14 3.14"/>
+                <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.752941176471 0.752941176471 0.752941176471 1" mesh="rarm3_link"/>
+                <geom name="rarm3_link_collision" type="mesh" mesh="rarm3_link" rgba="0.2 0.2 0.2 0.15" priority="1" friction="0.6 0.005 0.0001"/>
+                <body name="rarm4_link" pos="0 0 -0.24">
+                  <inertial pos="0.0318 0 -0.08" mass="1.7898" fullinertia="0.0214 0.0203 0.0034 0 -0.0027 0"/>
+                  <joint name="rarm4_joint" pos="0 0 0" axis="1 0 0" range="-1.57 1.57"/>
+                  <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.792156862745 0.819607843137 0.933333333333 1" mesh="rarm4_link"/>
+                  <geom name="rarm4_link_collision" type="mesh" mesh="rarm4_link" rgba="0.2 0.2 0.2 0.15" priority="1" friction="0.6 0.005 0.0001"/>
+                  <body name="rarm5_link" pos="0 0 -0.215">
+                    <inertial pos="-0.0026 0 0.0447" mass="1.1747" fullinertia="0.003 0.0026 0.0014 0 -0.0002 0"/>
+                    <joint name="rarm5_joint" pos="0 0 0" axis="1 0 0" range="-3.14 3.14"/>
+                    <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.792156862745 0.819607843137 0.933333333333 1" mesh="rarm5_link"/>
+                    <geom name="rarm5_link_collision" type="mesh" mesh="rarm5_link" rgba="0.2 0.2 0.2 0.15" priority="1" friction="0.6 0.005 0.0001"/>
+                    <body name="rarm6_link" pos="-0.0005 0 -0.032">
+                      <inertial pos="0 0 -0.034" mass="0.6447" fullinertia="0.0006 0.0006 0.0006 0 0 0"/>
+                      <joint name="rarm6_joint" pos="0 0 0" axis="0 0 1" range="-3.14 3.14"/>
+                      <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.792156862745 0.819607843137 0.933333333333 1" mesh="rarm6_link"/>
+                      <geom name="rarm6_link_collision" type="mesh" mesh="rarm6_link" rgba="0.2 0.2 0.2 0.15" priority="1" friction="0.6 0.005 0.0001"/>
+                    </body>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+    <geom name="floor" size="0 0 0.01" type="plane" material="groundplane" group="0" contype="1" conaffinity="0" priority="1" friction="0.6" condim="3"/>
+    <light diffuse=".5 .5 .5" pos="-3 -3 5" dir="3 3 -5" castshadow="true"/>
+  </worldbody>
+  <sensor>
+    <framequat name="orientation" objtype="site" objname="imu"/>
+    <framepos name="position" objtype="site" objname="imu"/>
+    <gyro name="imu_ang_vel" site="imu"/>
+    <velocimeter name="imu_lin_vel" site="imu"/>
+    <accelerometer name="imu_lin_acc" site="imu"/>
+    <subtreeangmom name="root_angmom" body="base_link"/>
+  </sensor>
+
+  <!-- setup scene -->
+  <statistic center="1.0 0.7 1.0" extent="0.8"/>
+  <visual>
+    <headlight diffuse="0.6 0.6 0.6" ambient="0.1 0.1 0.1" specular="0.9 0.9 0.9"/>
+    <rgba haze="0.15 0.25 0.35 1"/>
+    <global azimuth="-140" elevation="-20" offwidth="2080" offheight="1170"/>
+  </visual>
+</mujoco>
