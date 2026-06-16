@@ -297,7 +297,7 @@ def instinct_u20_parkour_amp_env_cfg(
             vertical_aperture=2 * math.tan(math.radians(58.29) / 2.0),
             ray_alignment="yaw",
             offset=NoisyGroupedRayCasterCameraCfg.OffsetCfg(
-                pos=(0.1, 0.005, 0.3775),
+                pos=(0.1, 0.005, 0.092),
                 rot=(
                     0.9135367613482678,
                     0.004363309284746571,
