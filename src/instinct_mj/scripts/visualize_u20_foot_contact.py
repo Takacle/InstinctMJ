@@ -1,11 +1,16 @@
-"""Visualize U20 foot sole collision capsules and volume-points grid.
+"""Visualize U20 (ring foot) wheel collision capsules and arc volume-points.
 
-Renders a side-by-side comparison of:
-  - 5 foot collision capsules (blue, transparent)
-  - 64 volume-point sample spheres per foot, color-coded by proximity:
+Renders, per foot:
+  - the foot's collision capsules (blue, transparent) loaded from u20_popsicle_ring.xml
+  - arc-curtain volume-point spheres (from ``Arc3dPointsGeneratorCfg``, the same
+    generator used by the parkour task config), color-coded by proximity to the
+    nearest collision capsule:
       GREEN  = inside capsule collision surface
       YELLOW = within 10 mm of capsule surface
       RED    = > 10 mm from any capsule surface
+
+Capsule proximity is computed from the actual collision geoms in the compiled
+MuJoCo model, so it auto-tracks whatever capsules the XML defines.
 
 Usage:
     python src/instinct_mj/scripts/visualize_u20_foot_contact.py
@@ -20,6 +25,9 @@ import mujoco
 import mujoco.viewer
 import numpy as np
 
+from instinct_mj.sensors.volume_points import Arc3dPointsGeneratorCfg
+from instinct_mj.sensors.volume_points.points_generator import arc3d_points_generator
+
 XML_PATH = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
     "assets",
@@ -28,20 +36,12 @@ XML_PATH = os.path.join(
     "xml",
     "u20_popsicle_ring.xml",
 )
+MESHES_DIR = os.path.abspath(os.path.join(os.path.dirname(XML_PATH), "..", "meshes"))
 
-CAPSULE_RADIUS = 0.015
-CAPSULE_HALF_LEN = 0.1
-CAPSULE_XS = np.array([-0.04, -0.02, 0.0, 0.02, 0.04])
-LEFT_CAPSULE_Y = 0.012763
-RIGHT_CAPSULE_Y = -0.0127632
-CAPSULE_Z = -0.08
+FOOT_BODY_NAMES = ("left_foot_link", "right_foot_link")
 
-VP_X = (-0.08, 0.08)
-VP_XN = 10
-VP_Y = (-0.112, 0.112)
-VP_YN = 5
-VP_Z = (-0.105, -0.0)
-VP_ZN = 4
+# Same generator/defaults as the parkour task VolumePointsCfg.
+POINTS_CFG = Arc3dPointsGeneratorCfg()
 
 SPHERE_R = 0.004
 NEAR_THRESH = 0.01
@@ -53,31 +53,63 @@ RGBA_CAPSULE = "0.2 0.6 1.0 0.55"
 
 
 def generate_volume_points() -> np.ndarray:
-    x = np.linspace(VP_X[0], VP_X[1], VP_XN)
-    y = np.linspace(VP_Y[0], VP_Y[1], VP_YN)
-    z = np.linspace(VP_Z[0], VP_Z[1], VP_ZN)
-    gx, gy, gz = np.meshgrid(x, y, z, indexing="ij")
-    return np.stack([gx, gy, gz], axis=-1).reshape(-1, 3)
+    """Arc-curtain point pattern in the foot body-local frame (identical for both feet)."""
+    return arc3d_points_generator(POINTS_CFG).numpy()
 
 
-def _seg_dist(px, py, pz, cx, cy_c, cz, half_len):
-    y_closest = np.clip(py, cy_c - half_len, cy_c + half_len)
-    return np.sqrt((px - cx) ** 2 + (py - y_closest) ** 2 + (pz - cz) ** 2)
+def compile_model(xml_path: str) -> mujoco.MjModel:
+    spec = mujoco.MjSpec.from_file(xml_path)
+    spec.meshdir = MESHES_DIR
+    spec.assets = {}
+    return spec.compile()
 
 
-def surface_distance(px, py, pz, capsule_y_c):
-    d_min = float("inf")
-    for cx in CAPSULE_XS:
-        d = _seg_dist(px, py, pz, cx, capsule_y_c, CAPSULE_Z, CAPSULE_HALF_LEN)
-        d_min = min(d_min, d)
-    return d_min - CAPSULE_RADIUS
+def _quat_rotate_vec(q: np.ndarray, v: np.ndarray) -> np.ndarray:
+    w, x, y, z = q
+    u = np.array([x, y, z])
+    return v + 2.0 * w * np.cross(u, v) + 2.0 * np.cross(u, np.cross(u, v))
 
 
-def classify_points(points: np.ndarray, capsule_y_c: float) -> list[str]:
+def load_foot_capsules(model: mujoco.MjModel) -> dict[str, np.ndarray]:
+    """Per-foot collision-capsule arrays in the foot body-local frame.
+
+    Returns dict[foot] = array shape (N, 8) with rows
+    ``[cx, cy, cz, ax, ay, az, half_len, radius]`` (center + local axis + size).
+    """
+    out: dict[str, np.ndarray] = {}
+    for foot in FOOT_BODY_NAMES:
+        bid = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, foot)
+        rows: list[list[float]] = []
+        for gi in range(model.ngeom):
+            name = mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_GEOM, gi)
+            if model.geom_bodyid[gi] == bid and name and "collision" in name:
+                center = np.asarray(model.geom_pos[gi])
+                axis = _quat_rotate_vec(np.asarray(model.geom_quat[gi]), np.array([0.0, 0.0, 1.0]))
+                half_len = float(model.geom_size[gi][1])
+                radius = float(model.geom_size[gi][0])
+                rows.append([center[0], center[1], center[2], axis[0], axis[1], axis[2], half_len, radius])
+        out[foot] = np.array(rows)
+    return out
+
+
+def capsule_distance(point: np.ndarray, capsules: np.ndarray) -> float:
+    """Signed surface distance from point to the nearest capsule (< 0 means inside)."""
+    centers = capsules[:, 0:3]
+    axes = capsules[:, 3:6]
+    halfs = capsules[:, 6]
+    radii = capsules[:, 7]
+    d = point - centers
+    proj = np.clip(np.einsum("nd,nd->n", d, axes), -halfs, halfs)
+    closest = centers + proj[:, None] * axes
+    dist = np.linalg.norm(point - closest, axis=1)
+    return float((dist - radii).min())
+
+
+def classify_points(points: np.ndarray, capsules: np.ndarray) -> list[str]:
     rgbs: list[str] = []
-    for px, py, pz in points:
-        sd = surface_distance(px, py, pz, capsule_y_c)
-        if sd <= 0:
+    for p in points:
+        sd = capsule_distance(p, capsules)
+        if sd <= 0.0:
             rgbs.append(RGBA_INSIDE)
         elif sd <= NEAR_THRESH:
             rgbs.append(RGBA_NEAR)
@@ -86,13 +118,23 @@ def classify_points(points: np.ndarray, capsule_y_c: float) -> list[str]:
     return rgbs
 
 
-def build_modified_xml(xml_path: str) -> tuple[str, np.ndarray]:
+def _find_body_element(worldbody: ET.Element, name: str) -> ET.Element | None:
+    for body in worldbody.iter("body"):
+        if body.get("name") == name:
+            return body
+    return None
+
+
+def build_modified_xml(
+    xml_path: str,
+    points: np.ndarray,
+    capsules_per_foot: dict[str, np.ndarray],
+) -> str:
     tree = ET.parse(xml_path)
     root = tree.getroot()
 
     compiler = root.find("compiler")
-    mesh_abs = os.path.abspath(os.path.join(os.path.dirname(xml_path), "..", "meshes"))
-    compiler.set("meshdir", mesh_abs)
+    compiler.set("meshdir", MESHES_DIR)
 
     worldbody = root.find("worldbody")
     ground = ET.Element("geom")
@@ -103,17 +145,8 @@ def build_modified_xml(xml_path: str) -> tuple[str, np.ndarray]:
     ground.set("condim", "3")
     worldbody.insert(0, ground)
 
-    points = generate_volume_points()
-
-    for foot_name, cy in [
-        ("left_foot_link", LEFT_CAPSULE_Y),
-        ("right_foot_link", RIGHT_CAPSULE_Y),
-    ]:
-        foot_body = None
-        for body in worldbody.iter("body"):
-            if body.get("name") == foot_name:
-                foot_body = body
-                break
+    for foot_name in FOOT_BODY_NAMES:
+        foot_body = _find_body_element(worldbody, foot_name)
         if foot_body is None:
             print(f"[WARN] body '{foot_name}' not found")
             continue
@@ -125,7 +158,7 @@ def build_modified_xml(xml_path: str) -> tuple[str, np.ndarray]:
                 geom.set("contype", "0")
                 geom.set("conaffinity", "0")
 
-        colors = classify_points(points, cy)
+        colors = classify_points(points, capsules_per_foot[foot_name])
         for i, ((px, py, pz), rgba) in enumerate(zip(points, colors)):
             s = ET.Element("geom")
             s.set("name", f"{foot_name}_vp{i:03d}")
@@ -140,72 +173,46 @@ def build_modified_xml(xml_path: str) -> tuple[str, np.ndarray]:
 
     tmp = os.path.join(os.path.dirname(xml_path), "_foot_viz_tmp.xml")
     tree.write(tmp, encoding="unicode", xml_declaration=True)
-    return tmp, points
+    return tmp
 
 
-def print_analysis(points: np.ndarray, capsule_y_c: float, label: str):
-    sds = np.array([surface_distance(p[0], p[1], p[2], capsule_y_c) for p in points])
-    n_in = int((sds <= 0).sum())
-    n_near = int(((sds > 0) & (sds <= NEAR_THRESH)).sum())
-    n_far = int((sds > NEAR_THRESH).sum())
+def print_analysis(points: np.ndarray, capsules: np.ndarray, label: str):
+    sds = np.array([capsule_distance(p, capsules) for p in points])
     n = len(points)
+    n_in = int((sds <= 0.0).sum())
+    n_near = int(((sds > 0.0) & (sds <= NEAR_THRESH)).sum())
+    n_far = int((sds > NEAR_THRESH).sum())
 
     print(f"\n{'=' * 62}")
     print(f"  {label}")
     print(f"{'=' * 62}")
-    print(f"  Total volume points : {n}")
+    print(f"  Collision capsules        : {capsules.shape[0]}")
+    print(f"  Volume points (arc)       : {n}")
     print(f"  GREEN  (inside capsule)    : {n_in:3d}  ({100 * n_in / n:5.1f}%)")
     print(f"  YELLOW (0-10mm from surface): {n_near:3d}  ({100 * n_near / n:5.1f}%)")
     print(f"  RED    (>10mm from surface): {n_far:3d}  ({100 * n_far / n:5.1f}%)")
+    print(f"  min / max signed distance : {sds.min():+.4f} / {sds.max():+.4f} m")
 
-    cap_x_lo = CAPSULE_XS[0] - CAPSULE_RADIUS
-    cap_x_hi = CAPSULE_XS[-1] + CAPSULE_RADIUS
-    cap_y_lo = capsule_y_c - CAPSULE_HALF_LEN
-    cap_y_hi = capsule_y_c + CAPSULE_HALF_LEN
-    cap_z_lo = CAPSULE_Z - CAPSULE_RADIUS
-    cap_z_hi = CAPSULE_Z + CAPSULE_RADIUS
+    radii = POINTS_CFG.radii
+    r_xz = np.sqrt(points[:, 0] ** 2 + points[:, 2] ** 2)
+    print("\n  Per-radius-shell breakdown:")
+    print(f"    {'radius':>7s}  {'in':>4s} {'near':>5s} {'far':>4s}")
+    for r in radii:
+        mask = np.isclose(r_xz, r, atol=1e-4)
+        sds_r = sds[mask]
+        if sds_r.size == 0:
+            continue
+        ni = int((sds_r <= 0.0).sum())
+        nn = int(((sds_r > 0.0) & (sds_r <= NEAR_THRESH)).sum())
+        nf = int((sds_r > NEAR_THRESH).sum())
+        print(f"    {r:7.4f}  {ni:4d} {nn:5d} {nf:4d}")
 
-    print(f"\n  Capsule bounding box (body frame):")
-    print(f"    x : [{cap_x_lo:+.4f}, {cap_x_hi:+.4f}]")
-    print(f"    y : [{cap_y_lo:+.4f}, {cap_y_hi:+.4f}]")
-    print(f"    z : [{cap_z_lo:+.4f}, {cap_z_hi:+.4f}]")
-    print(f"\n  Volume-points grid (body frame):")
-    print(f"    x : [{VP_X[0]:+.4f}, {VP_X[1]:+.4f}]  ({VP_XN} pts)")
-    print(f"    y : [{VP_Y[0]:+.4f}, {VP_Y[1]:+.4f}]  ({VP_YN} pts)")
-    print(f"    z : [{VP_Z[0]:+.4f}, {VP_Z[1]:+.4f}]  ({VP_ZN} pts)")
-
-    x_vals = np.linspace(VP_X[0], VP_X[1], VP_XN)
-    y_vals = np.linspace(VP_Y[0], VP_Y[1], VP_YN)
-
-    print(f"\n  Per-x-row detail (z={VP_Z[0]:.2f} layer):")
-    print(f"    {'x':>7s}  {'in':>4s} {'near':>5s} {'far':>4s}  inside_capsule_x?")
-    for xi in x_vals:
-        mask_x = np.abs(points[:, 0] - xi) < 1e-9
-        pts_x = points[mask_x]
-        sds_x = np.array(
-            [surface_distance(p[0], p[1], p[2], capsule_y_c) for p in pts_x]
-        )
-        ni = int((sds_x <= 0).sum())
-        nn = int(((sds_x > 0) & (sds_x <= NEAR_THRESH)).sum())
-        nf = int((sds_x > NEAR_THRESH).sum())
-        in_cap = cap_x_lo <= xi <= cap_x_hi
-        tag = " <-- outside" if not in_cap else ""
-        print(f"    {xi:+7.4f}  {ni:4d} {nn:5d} {nf:4d}  {'YES' if in_cap else 'NO':>3s}{tag}")
-
-    print(f"\n  Per-y-row detail (z={VP_Z[0]:.2f} layer):")
-    print(f"    {'y':>7s}  {'in':>4s} {'near':>5s} {'far':>4s}  inside_capsule_y?")
-    for yi in y_vals:
-        mask_y = np.abs(points[:, 1] - yi) < 1e-9
-        pts_y = points[mask_y]
-        sds_y = np.array(
-            [surface_distance(p[0], p[1], p[2], capsule_y_c) for p in pts_y]
-        )
-        ni = int((sds_y <= 0).sum())
-        nn = int(((sds_y > 0) & (sds_y <= NEAR_THRESH)).sum())
-        nf = int((sds_y > NEAR_THRESH).sum())
-        in_cap = cap_y_lo <= yi <= cap_y_hi
-        tag = " <-- outside" if not in_cap else ""
-        print(f"    {yi:+7.4f}  {ni:4d} {nn:5d} {nf:4d}  {'YES' if in_cap else 'NO':>3s}{tag}")
+    print("\n  Arc pattern (body frame):")
+    print(f"    radii       : {tuple(round(r, 4) for r in radii)}")
+    print(f"    angle range : [{POINTS_CFG.angle_min:.4f}, {POINTS_CFG.angle_max:.4f}] rad "
+          f"({POINTS_CFG.angle_num} pts)")
+    print(f"    y range     : [{POINTS_CFG.y_min:+.4f}, {POINTS_CFG.y_max:+.4f}] "
+          f"({POINTS_CFG.y_num} pts)")
 
 
 def set_standing_pose(model: mujoco.MjModel, data: mujoco.MjData):
@@ -236,22 +243,29 @@ def main():
 
     print(f"[INFO] XML: {XML_PATH}")
 
-    tmp_path, points = build_modified_xml(XML_PATH)
+    capsules_per_foot = load_foot_capsules(compile_model(XML_PATH))
+    for foot, caps in capsules_per_foot.items():
+        print(f"[INFO] {foot}: {caps.shape[0]} collision capsules")
+
+    points = generate_volume_points()
+    print(f"[INFO] volume points per foot: {points.shape[0]}")
+
+    tmp_path = build_modified_xml(XML_PATH, points, capsules_per_foot)
     print(f"[INFO] Modified XML: {tmp_path}")
 
-    print_analysis(points, LEFT_CAPSULE_Y, "Left Foot")
-    print_analysis(points, RIGHT_CAPSULE_Y, "Right Foot")
+    print_analysis(points, capsules_per_foot["left_foot_link"], "Left Foot")
+    print_analysis(points, capsules_per_foot["right_foot_link"], "Right Foot")
 
     model = mujoco.MjModel.from_xml_path(tmp_path)
     data = mujoco.MjData(model)
     set_standing_pose(model, data)
 
-    print(f"\n[VIEWER] Legend:")
-    print(f"  Blue transparent  = 5 foot collision capsules")
-    print(f"  Green  spheres = volume points INSIDE capsule surface")
-    print(f"  Yellow spheres = volume points 0-10mm FROM capsule surface")
-    print(f"  Red    spheres = volume points >10mm FROM capsule surface")
-    print(f"  Close viewer window to exit.")
+    print("\n[VIEWER] Legend:")
+    print("  Blue transparent = foot collision capsules")
+    print("  Green  spheres = volume points INSIDE capsule surface")
+    print("  Yellow spheres = volume points 0-10mm FROM capsule surface")
+    print("  Red    spheres = volume points >10mm FROM capsule surface")
+    print("  Close viewer window to exit.")
 
     with mujoco.viewer.launch_passive(model, data) as viewer:
         viewer.cam.lookat[:] = [0, 0, 0.35]

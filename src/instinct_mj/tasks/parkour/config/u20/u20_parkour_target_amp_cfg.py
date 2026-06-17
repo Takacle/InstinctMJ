@@ -664,11 +664,11 @@ def instinct_u20_parkour_amp_env_cfg(
         ),
         "action_rate_l2": RewardTermCfg(func=envs_mdp.action_rate_l2, weight=-0.005),
         "flat_orientation_l2": RewardTermCfg(func=envs_mdp.flat_orientation_l2, weight=-3.0),
-        "pelvis_orientation_l2": RewardTermCfg(
-            func=parkour_mdp.link_orientation,
-            weight=-3.0,
-            params={"asset_cfg": SceneEntityCfg("robot", body_names="base_link")},
-        ),
+        # "pelvis_orientation_l2": RewardTermCfg(
+        #     func=parkour_mdp.link_orientation,
+        #     weight=-3.0,
+        #     params={"asset_cfg": SceneEntityCfg("robot", body_names="base_link")},
+        # ),
         "feet_flat_ori": RewardTermCfg(
             func=parkour_mdp.feet_orientation_contact,
             weight=-0.4,
