@@ -1,9 +1,10 @@
 from dataclasses import MISSING, dataclass
+from math import pi
 from typing import Callable
 
 import torch
 
-from .points_generator import grid3d_points_generator
+from .points_generator import arc3d_points_generator, grid3d_points_generator
 
 
 @dataclass(kw_only=True)
@@ -35,3 +36,27 @@ class Grid3dPointsGeneratorCfg(PointsGeneratorCfg):
     """Maximum z coordinate of the grid."""
     z_num: int = 10
     """Number of points along the z axis."""
+
+
+@dataclass(kw_only=True)
+class Arc3dPointsGeneratorCfg(PointsGeneratorCfg):
+    func: Callable = arc3d_points_generator
+
+    radii: tuple[float, ...] = (0.097, 0.105)
+    """Radii of the arc shells in the body X-Z plane.
+    0.097 = wheel envelope (R 0.085 + capsule r 0.012); 0.105 = +8 mm early-warning shell.
+    """
+
+    angle_min: float = pi
+    """Start angle (rad). ``pi`` -> (-X, z=0) back side of the wheel."""
+    angle_max: float = 2.0 * pi
+    """End angle (rad). ``2*pi`` -> (+X, z=0) front side, sweeping through z=-r (bottom, ``3*pi/2``)."""
+    angle_num: int = 17
+    """Number of angular samples over ``[angle_min, angle_max]`` (17 -> every 11.25 deg)."""
+
+    y_min: float = -0.112
+    """Minimum lateral (Y) offset; covers both Y groups, symmetric for L/R feet."""
+    y_max: float = 0.112
+    """Maximum lateral (Y) offset."""
+    y_num: int = 5
+    """Number of lateral (Y) layers."""

@@ -54,7 +54,10 @@ from instinct_mj.motion_reference import MotionReferenceManagerCfg
 from instinct_mj.motion_reference.motion_files.amass_motion_cfg import AmassMotionCfg as AmassMotionCfgBase
 from instinct_mj.motion_reference.utils import motion_interpolate_bilinear
 from instinct_mj.sensors.noisy_camera import NoisyGroupedRayCasterCameraCfg
-from instinct_mj.sensors.volume_points import Grid3dPointsGeneratorCfg, VolumePointsCfg
+from instinct_mj.sensors.volume_points import (
+    Arc3dPointsGeneratorCfg,
+    VolumePointsCfg,
+)
 from instinct_mj.tasks.mdp import (
     parkour_amp_reference_base_ang_vel,
     parkour_amp_reference_base_lin_vel,
@@ -251,20 +254,35 @@ def instinct_u20_parkour_amp_env_cfg(
             track_air_time=False,
             history_length=3,
         ),
+        # VolumePointsCfg(
+        #     name="leg_volume_points",
+        #     entity_name="robot",
+        #     body_names=".*_foot_link",
+        #     points_generator=Grid3dPointsGeneratorCfg(
+        #         x_min=-0.06,
+        #         x_max=0.06,
+        #         x_num=8,
+        #         y_min=-0.08,
+        #         y_max=0.10,
+        #         y_num=10,
+        #         z_min=-0.09,
+        #         z_max=-0.07,
+        #         z_num=2,
+        #     ),
+        #     debug_vis=False,
+        # ),
         VolumePointsCfg(
             name="leg_volume_points",
             entity_name="robot",
             body_names=".*_foot_link",
-            points_generator=Grid3dPointsGeneratorCfg(
-                x_min=-0.06,
-                x_max=0.06,
-                x_num=8,
-                y_min=-0.08,
-                y_max=0.10,
-                y_num=10,
-                z_min=-0.09,
-                z_max=-0.07,
-                z_num=2,
+            points_generator=Arc3dPointsGeneratorCfg(
+                radii=(0.097, 0.105),  # wheel envelope (R 0.085 + capsule r 0.012) + 8 mm early-warning
+                angle_min=math.pi,     # (-X, z=0) back side
+                angle_max=2.0 * math.pi,  # (+X, z=0) front side, through z=-r bottom
+                angle_num=17,          # every 11.25 deg over the lower semicircle
+                y_min=-0.112,          # both Y groups, symmetric for L/R feet
+                y_max=0.112,
+                y_num=5,
             ),
             debug_vis=False,
         ),
@@ -420,7 +438,7 @@ def instinct_u20_parkour_amp_env_cfg(
                 "history_skip_frames": 5,
                 "num_output_frames": 8,
                 "delayed_frame_ranges": (0, 1),
-                "debug_vis": True,
+                "debug_vis": False,
             },
             noise=None,
         ),
@@ -837,7 +855,7 @@ def instinct_u20_parkour_amp_env_cfg(
         camera_sensor = next(sensor_cfg for sensor_cfg in cfg.scene.sensors if sensor_cfg.name == "camera")
         camera_sensor.debug_vis = True
 
-        cfg.scene.terrain.collision_debug_vis = False
+        cfg.scene.terrain.collision_debug_vis = True
         cfg.events["register_virtual_obstacles"].params["enable_debug_vis"] = False
         cfg.commands["base_velocity"].debug_vis = True
         cfg.commands["base_velocity"].patch_vis = False

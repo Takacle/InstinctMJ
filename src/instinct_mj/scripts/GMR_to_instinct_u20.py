@@ -1,45 +1,55 @@
 """Convert GMR (General Motion Retargeting) data to Instinct motion format for U20.
 
-U20's root body is base_link, same as GMR output, so no frame transformation is needed.
-This script repacks the pkl data into the retargeted npz format with U20 22-DOF joint names.
+Applies two corrections to the raw GMR pkl output:
+  1. Quaternion convention: xyzw -> wxyz (MuJoCo convention)
+  2. Coordinate frame: rotate +90 deg around Z axis (position + quaternion)
+
+The GMR pipeline outputs 23-DOF joint data using its own URDF naming convention
+(lleg1_joint, etc.). These names are preserved as-is; the motion loading code
+resolves them via joint_name_mapping in the parkour config.
 """
 
 from __future__ import annotations
 
 import argparse
-import functools
 import multiprocessing as mp
 import os
 import pickle as pkl
 
 import numpy as np
 import tqdm
+from scipy.spatial.transform import Rotation
 
-# U20 22-DOF joint names (same order as GMR output: legs(8) + waist(2) + arms(12))
+# U20 23-DOF joint names in GMR output order:
+# legs(8) + waist(2) + head(1) + left arm(6) + right arm(6)
 U20_JOINT_NAMES = [
-    "left_hip_yaw_joint",
-    "left_hip_pitch_joint",
-    "left_hip_roll_joint",
-    "left_knee_joint",
-    "right_hip_yaw_joint",
-    "right_hip_pitch_joint",
-    "right_hip_roll_joint",
-    "right_knee_joint",
-    "waist_yaw_joint",
-    "waist_roll_joint",
-    "left_shoulder_pitch_joint",
-    "left_shoulder_roll_joint",
-    "left_shoulder_yaw_joint",
-    "left_elbow_joint",
-    "left_wrist_pitch_joint",
-    "left_wrist_yaw_joint",
-    "right_shoulder_pitch_joint",
-    "right_shoulder_roll_joint",
-    "right_shoulder_yaw_joint",
-    "right_elbow_joint",
-    "right_wrist_pitch_joint",
-    "right_wrist_yaw_joint",
+    "lleg1_joint",
+    "lleg2_joint",
+    "lleg3_joint",
+    "lleg4_joint",
+    "rleg1_joint",
+    "rleg2_joint",
+    "rleg3_joint",
+    "rleg4_joint",
+    "waist1_joint",
+    "waist2_joint",
+    "head_joint",
+    "larm1_joint",
+    "larm2_joint",
+    "larm3_joint",
+    "larm4_joint",
+    "larm5_joint",
+    "larm6_joint",
+    "rarm1_joint",
+    "rarm2_joint",
+    "rarm3_joint",
+    "rarm4_joint",
+    "rarm5_joint",
+    "rarm6_joint",
 ]
+
+# Coordinate frame rotation: GMR Y-forward -> MuJoCo X-forward
+R_FRAME = Rotation.from_euler("z", 90, degrees=True)
 
 
 def convert_file(src_tgt_pair):
@@ -48,11 +58,17 @@ def convert_file(src_tgt_pair):
     with open(src_file, "rb") as f:
         motion_data = pkl.load(f)
 
-    joint_pos = motion_data["dof_pos"]  # (N, 22)
+    joint_pos = motion_data["dof_pos"]  # (N, 23)
     base_pos_w = motion_data["root_pos"]  # (N, 3)
     base_quat_w_xyzw = motion_data["root_rot"]  # (N, 4), xyzw order
     base_quat_w = base_quat_w_xyzw[..., [3, 0, 1, 2]]  # convert to wxyz order
     framerate = motion_data["fps"]
+
+    # Apply coordinate frame rotation (+90 deg around Z)
+    base_pos_w = R_FRAME.apply(base_pos_w)
+    R_motion = Rotation.from_quat(base_quat_w[:, [1, 2, 3, 0]])  # wxyz -> xyzw for scipy
+    R_corrected = R_FRAME * R_motion
+    base_quat_w = R_corrected.as_quat()[:, [3, 0, 1, 2]]  # xyzw -> wxyz
 
     np.savez(
         tgt_file,

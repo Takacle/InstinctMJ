@@ -26,7 +26,7 @@ XML_PATH = os.path.join(
     "resources",
     "u20",
     "xml",
-    "u20_popsicle.xml",
+    "u20_popsicle_ring.xml",
 )
 
 CAPSULE_RADIUS = 0.015
@@ -36,12 +36,12 @@ LEFT_CAPSULE_Y = 0.012763
 RIGHT_CAPSULE_Y = -0.0127632
 CAPSULE_Z = -0.08
 
-VP_X = (-0.06, 0.06)
-VP_XN = 8
-VP_Y = (-0.08, 0.10)
-VP_YN = 10
-VP_Z = (-0.09, -0.07)
-VP_ZN = 2
+VP_X = (-0.08, 0.08)
+VP_XN = 10
+VP_Y = (-0.112, 0.112)
+VP_YN = 5
+VP_Z = (-0.105, -0.0)
+VP_ZN = 4
 
 SPHERE_R = 0.004
 NEAR_THRESH = 0.01
