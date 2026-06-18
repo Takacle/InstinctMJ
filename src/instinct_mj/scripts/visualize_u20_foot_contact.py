@@ -2,7 +2,7 @@
 
 Renders, per foot:
   - the foot's collision capsules (blue, transparent) loaded from u20_popsicle_ring.xml
-  - arc-curtain volume-point spheres (from ``Arc3dPointsGeneratorCfg``, the same
+  - arc half-ring volume-point spheres (from ``Arc3dPointsGeneratorCfg``, the same
     generator used by the parkour task config), color-coded by proximity to the
     nearest collision capsule:
       GREEN  = inside capsule collision surface
@@ -41,7 +41,10 @@ MESHES_DIR = os.path.abspath(os.path.join(os.path.dirname(XML_PATH), "..", "mesh
 FOOT_BODY_NAMES = ("left_foot_link", "right_foot_link")
 
 # Same generator/defaults as the parkour task VolumePointsCfg.
-POINTS_CFG = Arc3dPointsGeneratorCfg()
+# 4 wheel centers (union of L/R feet's staggered wheels).
+POINTS_CFG = Arc3dPointsGeneratorCfg(
+    centers=((0.0, 0.067), (0.0, -0.067), (0.20, 0.033), (0.20, -0.033)),
+)
 
 SPHERE_R = 0.004
 NEAR_THRESH = 0.01
@@ -53,7 +56,7 @@ RGBA_CAPSULE = "0.2 0.6 1.0 0.55"
 
 
 def generate_volume_points() -> np.ndarray:
-    """Arc-curtain point pattern in the foot body-local frame (identical for both feet)."""
+    """Arc half-ring point pattern in the foot body-local frame (identical for both feet)."""
     return arc3d_points_generator(POINTS_CFG).numpy()
 
 
@@ -194,25 +197,23 @@ def print_analysis(points: np.ndarray, capsules: np.ndarray, label: str):
     print(f"  min / max signed distance : {sds.min():+.4f} / {sds.max():+.4f} m")
 
     radii = POINTS_CFG.radii
-    r_xz = np.sqrt(points[:, 0] ** 2 + points[:, 2] ** 2)
+    # Exact per-radius grouping via the known meshgrid layout (centers, radii, angles).
+    n_c = len(POINTS_CFG.centers)
+    sds_grid = sds.reshape(n_c, len(radii), POINTS_CFG.angle_num)
     print("\n  Per-radius-shell breakdown:")
     print(f"    {'radius':>7s}  {'in':>4s} {'near':>5s} {'far':>4s}")
-    for r in radii:
-        mask = np.isclose(r_xz, r, atol=1e-4)
-        sds_r = sds[mask]
-        if sds_r.size == 0:
-            continue
+    for r_idx, r in enumerate(radii):
+        sds_r = sds_grid[:, r_idx, :].flatten()
         ni = int((sds_r <= 0.0).sum())
         nn = int(((sds_r > 0.0) & (sds_r <= NEAR_THRESH)).sum())
         nf = int((sds_r > NEAR_THRESH).sum())
         print(f"    {r:7.4f}  {ni:4d} {nn:5d} {nf:4d}")
 
     print("\n  Arc pattern (body frame):")
+    print(f"    centers     : {tuple((round(x, 4), round(y, 4)) for x, y in POINTS_CFG.centers)}")
     print(f"    radii       : {tuple(round(r, 4) for r in radii)}")
     print(f"    angle range : [{POINTS_CFG.angle_min:.4f}, {POINTS_CFG.angle_max:.4f}] rad "
           f"({POINTS_CFG.angle_num} pts)")
-    print(f"    y range     : [{POINTS_CFG.y_min:+.4f}, {POINTS_CFG.y_max:+.4f}] "
-          f"({POINTS_CFG.y_num} pts)")
 
 
 def set_standing_pose(model: mujoco.MjModel, data: mujoco.MjData):

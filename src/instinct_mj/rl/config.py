@@ -209,3 +209,37 @@ class EstimatorActorCriticRecurrentCfg(InstinctRlActorCriticRecurrentCfg):
     estimator_target_components: list[str] = field(default_factory=list)
     estimator_configs: Any = None
     replace_state_prob: float = 1.0
+
+
+# ---------------------------------------------------------------------------
+# SSR Imagined Foothold Guidance — instinct_rl algorithm configuration.
+#
+# The imagination MLP is owned by ``ImaginatorAlgoMixin`` (not by the
+# actor-critic), so the policy configuration only needs to expose the
+# underlying actor-critic class. Algorithm-level fields configure the
+# imagination MLP shape, its optimizer, and the foothold reward coefficient.
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class InstinctRlImaginatorAlgoMixinCfg:
+    """Configuration fields consumed by ``ImaginatorAlgoMixin``.
+
+    These fields are merged into ``InstinctRlPpoAlgorithmCfg`` subclasses
+    via multiple inheritance (see ``ImaginatorAmpAlgoCfg`` in the V11 SSR
+    agent config).
+    """
+
+    imaginator_privilege_key: str = "foothold_privilege"
+    imaginator_target_key: str = "foothold_target"
+    imaginator_hidden_sizes: tuple[int, ...] = (256, 128)
+    imaginator_nonlinearity: str = "ELU"
+    imaginator_loss_coef: float = 1.0
+    imaginator_optimizer_class_name: str = "AdamW"
+    imaginator_optimizer_kwargs: dict[str, Any] = field(
+        default_factory=lambda: {"lr": 5e-4}
+    )
+    imaginator_num_feet: int = 2
+    imaginator_target_dim_per_foot: int = 2
+    foothold_reward_coef: float = 0.0
+    sigma_f: float = 0.0625

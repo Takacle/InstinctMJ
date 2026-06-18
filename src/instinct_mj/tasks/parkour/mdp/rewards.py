@@ -382,3 +382,155 @@ def undesired_contacts(
     contact_sensor: ContactSensor = env.scene[sensor_name]
     is_contact = torch.max(torch.linalg.vector_norm(contact_sensor.data.force_history, dim=-1), dim=2)[0] > threshold
     return torch.sum(is_contact.float(), dim=1)
+
+
+# ---------------------------------------------------------------------------
+# SSR Imagined Foothold Guidance — contact-time portion
+#
+# This reward implements r^f = exp(-(sum_i rho_i)^2 / sigma_f^2) where rho is
+# the "support deficiency" of a sole patch centered at each foot. For stance
+# feet, rho is evaluated at the current contact position. For swing feet, the
+# current foot position is used as a contact-time approximation (the
+# model-free portion of the SSR ablation "NoImgn"). The imagination-based
+# expected rho under the imagined Gaussian distribution is computed in the
+# algorithm side (instinct_rl ImaginatorAlgoMixin) and injected via
+# compute_auxiliary_reward.
+#
+# Reference: Yu et al., "SSR: Scaling Surefooted and Symmetric Humanoid
+# Traversal to the Open World", 2026, Section 3.2.
+# ---------------------------------------------------------------------------
+
+
+def _compute_support_deficiency(
+    scanner: RayCastSensor,
+    root_pos_w: torch.Tensor,
+    support_threshold: float,
+) -> torch.Tensor:
+    """Compute per-foot support deficiency rho from a sole-patch RayCastSensor.
+
+    Args:
+        scanner: RayCastSensor sampling the sole patch under one foot.
+          ``scanner.data.hit_pos_w[..., 2]`` is (E, N) world-z of hit points.
+        root_pos_w: (E, 3) root link world position. Used to impute missed rays.
+        support_threshold: A ray sample is considered unsupported if its
+          height is more than this far below the sole height (max of samples).
+
+    Returns:
+        Tensor of shape (E,) — unsupported fraction in [0, 1].
+    """
+    hit_z = scanner.data.hit_pos_w[..., 2]  # (E, N)
+    distances = scanner.data.distances  # (E, N)
+    miss = distances < 0.0
+    # Treat missed rays as ground level at the root (i.e. neither supported nor
+    # a hard obstacle). Imputing root-z prevents spurious cliffs at scan edges.
+    hit_z = torch.where(
+        miss,
+        root_pos_w[:, 2:1].expand_as(hit_z),
+        hit_z,
+    )
+    # Sole height: the highest sample inside the patch (paper Eq. for h_f).
+    sole_height = hit_z.max(dim=-1).values  # (E,)
+    unsupported = (sole_height.unsqueeze(-1) - hit_z) > support_threshold  # (E, N)
+    rho = unsupported.float().mean(dim=-1)  # (E,)
+    # All-miss scans should not be penalized (avoid spurious cliffs).
+    rho = torch.where(
+        miss.all(dim=-1),
+        torch.zeros_like(rho),
+        rho,
+    )
+    return rho
+
+
+def _is_slope_terrain(
+    env: ManagerBasedRlEnv, slope_terrain_name: str
+) -> torch.Tensor:
+    """Return (num_envs,) bool: True for envs on the named slope sub-terrain.
+
+    Resolves the sub-terrain name to an index using the terrain generator's
+    sub_terrains dict (insertion order). Returns all-False if the name is
+    not found or no terrain generator is attached.
+    """
+    terrain = env.scene.terrain
+    if not hasattr(terrain, "terrain_generator") or terrain.terrain_generator is None:
+        return torch.zeros(env.num_envs, dtype=torch.bool, device=env.device)
+    sub_terrains = terrain.terrain_generator.cfg.sub_terrains
+    sub_names = list(sub_terrains.keys())
+    if slope_terrain_name not in sub_names:
+        return torch.zeros(env.num_envs, dtype=torch.bool, device=env.device)
+    slope_idx = sub_names.index(slope_terrain_name)
+    return terrain.terrain_types == slope_idx
+
+
+def foothold_support_deficiency(
+    env: ManagerBasedRlEnv,
+    contact_sensor_name: str,
+    left_scanner_name: str,
+    right_scanner_name: str,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+    std: float = 0.0625,
+    contact_force_threshold: float = 1.0,
+    support_threshold: float = 0.03,
+    slope_terrain_name: str = "hf_pyramid_slope_inv",
+    min_terrain_level: int = 3,
+) -> torch.Tensor:
+    """SSR foothold support deficiency reward (contact-time portion).
+
+    Computes r^f = exp(-(rho_l + rho_r)^2 / sigma_f^2) where each rho is the
+    unsupported fraction within a sole-patch ray scan centered at the foot.
+
+    Behavior:
+      - On slope terrains (e.g. ``hf_pyramid_slope_inv``), rho is set to 0 to
+        avoid penalizing inclined contacts (paper footnote in Table 6).
+      - Below ``min_terrain_level`` (curriculum gating), the reward is 1.0 to
+        avoid noisy guidance when gaits are unstable early in training.
+      - Both stance and swing feet use their current scanner output (swing uses
+        current foot position as a contact-time approximation). The imagined
+        Gaussian-sample-based swing guidance is added separately by the
+        algorithm mixin.
+
+    Args:
+        env: The RL environment.
+        contact_sensor_name: Name of the ContactSensor for feet.
+        left_scanner_name: Name of the left sole-patch RayCastSensor.
+        right_scanner_name: Name of the right sole-patch RayCastSensor.
+        asset_cfg: Entity config resolving the robot entity (unused for
+          body_ids since scanners are pre-attached, but kept for consistency).
+        std: sigma_f in the Gaussian kernel.
+        contact_force_threshold: Force threshold for contact detection.
+        support_threshold: Height drop below sole-height to count as unsupported.
+        slope_terrain_name: Sub-terrain name on which rho is forced to 0.
+        min_terrain_level: Curriculum level below which reward = 1.0.
+    """
+    del contact_force_threshold  # scanner-based rho does not use contact threshold
+    asset: Entity = env.scene[asset_cfg.name]
+    left_scanner: RayCastSensor = env.scene[left_scanner_name]
+    right_scanner: RayCastSensor = env.scene[right_scanner_name]
+    root_pos_w = asset.data.root_link_pos_w  # (E, 3)
+
+    # Per-foot support deficiency.
+    rho_left = _compute_support_deficiency(
+        left_scanner, root_pos_w, support_threshold
+    )
+    rho_right = _compute_support_deficiency(
+        right_scanner, root_pos_w, support_threshold
+    )
+
+    rho_sum = rho_left + rho_right  # (E,)
+
+    # Curriculum gating: reward = 1.0 below min_terrain_level (no constraint).
+    terrain = env.scene.terrain
+    terrain_levels = terrain.terrain_levels  # (E,)
+    level_ok = terrain_levels >= min_terrain_level  # (E,) bool
+
+    # Slope terrain exception: set rho_sum = 0 (=> reward = 1.0).
+    is_slope = _is_slope_terrain(env, slope_terrain_name)  # (E,) bool
+
+    # Effective rho_sum: zero where slope or below-curriculum.
+    rho_effective = torch.where(
+        level_ok & ~is_slope,
+        rho_sum,
+        torch.zeros_like(rho_sum),
+    )
+
+    reward = torch.exp(-(rho_effective**2) / (std**2))
+    return reward

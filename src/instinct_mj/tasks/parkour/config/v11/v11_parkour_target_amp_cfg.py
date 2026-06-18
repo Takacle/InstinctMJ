@@ -415,7 +415,7 @@ def instinct_v11_parkour_amp_env_cfg(
                 "history_skip_frames": 5,
                 "num_output_frames": 8,
                 "delayed_frame_ranges": (0, 1),
-                "debug_vis": False,
+                "debug_vis": True,
             },
             noise=None,
         ),

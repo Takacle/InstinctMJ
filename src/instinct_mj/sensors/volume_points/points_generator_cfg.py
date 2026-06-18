@@ -2,8 +2,6 @@ from dataclasses import MISSING, dataclass
 from math import pi
 from typing import Callable
 
-import torch
-
 from .points_generator import arc3d_points_generator, grid3d_points_generator
 
 
@@ -42,6 +40,13 @@ class Grid3dPointsGeneratorCfg(PointsGeneratorCfg):
 class Arc3dPointsGeneratorCfg(PointsGeneratorCfg):
     func: Callable = arc3d_points_generator
 
+    centers: tuple[tuple[float, float], ...] = ((0.0, 0.0),)
+    """Wheel centers ``(x_c, y_c)`` in the body frame. One lower-semicircle
+    half-ring (single Y layer) is generated per center, matching one wheel of
+    the foot sole. e.g. ``((0.0, 0.067), (0.0, -0.067), (0.20, 0.033), (0.20, -0.033))``
+    for the staggered 4-wheel foot (union of L/R feet's wheel centers).
+    """
+
     radii: tuple[float, ...] = (0.097, 0.105)
     """Radii of the arc shells in the body X-Z plane.
     0.097 = wheel envelope (R 0.085 + capsule r 0.012); 0.105 = +8 mm early-warning shell.
@@ -53,10 +58,3 @@ class Arc3dPointsGeneratorCfg(PointsGeneratorCfg):
     """End angle (rad). ``2*pi`` -> (+X, z=0) front side, sweeping through z=-r (bottom, ``3*pi/2``)."""
     angle_num: int = 17
     """Number of angular samples over ``[angle_min, angle_max]`` (17 -> every 11.25 deg)."""
-
-    y_min: float = -0.112
-    """Minimum lateral (Y) offset; covers both Y groups, symmetric for L/R feet."""
-    y_max: float = 0.112
-    """Maximum lateral (Y) offset."""
-    y_num: int = 5
-    """Number of lateral (Y) layers."""

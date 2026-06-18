@@ -185,8 +185,8 @@ def instinct_u20_parkour_amp_env_cfg(
     cfg.scene.num_envs = 2048
     cfg.scene.env_spacing = 2.5
     cfg.episode_length_s = 20.0
-    cfg.sim.nconmax = 256
-    cfg.sim.njmax = 700
+    cfg.sim.nconmax = 256  # 4-wheel foot (8 caps/wheel, 32 total): terrain ncon ~150; right-sized with headroom
+    cfg.sim.njmax = 1024  # terrain nefc ~660; right-sized with headroom
     cfg.sim.mujoco.iterations = 10
     cfg.sim.mujoco.ls_iterations = 20
     cfg.sim.mujoco.ccd_iterations = 128
@@ -276,13 +276,14 @@ def instinct_u20_parkour_amp_env_cfg(
             entity_name="robot",
             body_names=".*_foot_link",
             points_generator=Arc3dPointsGeneratorCfg(
+                centers=(  # 4 wheel centers (union of L/R feet's staggered wheels)
+                    (0.0, 0.067), (0.0, -0.067),
+                    (0.20, 0.033), (0.20, -0.033),
+                ),
                 radii=(0.097, 0.105),  # wheel envelope (R 0.085 + capsule r 0.012) + 8 mm early-warning
                 angle_min=math.pi,     # (-X, z=0) back side
                 angle_max=2.0 * math.pi,  # (+X, z=0) front side, through z=-r bottom
                 angle_num=17,          # every 11.25 deg over the lower semicircle
-                y_min=-0.112,          # both Y groups, symmetric for L/R feet
-                y_max=0.112,
-                y_num=5,
             ),
             debug_vis=False,
         ),

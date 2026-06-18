@@ -63,37 +63,21 @@
                 <inertial pos="0 0.017 0" quat="0.707107 0.707107 0 0" mass="7.7653" diaginertia="0.075 0.075 0.0327"/>
                 <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.752941 0.752941 0.752941 1" mesh="lleg5_link"/>
                 <geom name="left_foot1f_collision" size="0.012 0.033379" pos="0.085 0.067 0" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="left_foot1b_collision" size="0.012 0.033379" pos="0.085 -0.033 0" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="left_foot2f_collision" size="0.012 0.033379" pos="0.07853 0.067 0.032528" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="left_foot2b_collision" size="0.012 0.033379" pos="0.07853 -0.033 0.032528" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="left_foot3f_collision" size="0.012 0.033379" pos="0.060104 0.067 0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="left_foot3b_collision" size="0.012 0.033379" pos="0.060104 -0.033 0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="left_foot4f_collision" size="0.012 0.033379" pos="0.032528 0.067 0.07853" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="left_foot4b_collision" size="0.012 0.033379" pos="0.032528 -0.033 0.07853" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="left_foot5f_collision" size="0.012 0.033379" pos="0 0.067 0.085" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="left_foot5b_collision" size="0.012 0.033379" pos="0 -0.033 0.085" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="left_foot6f_collision" size="0.012 0.033379" pos="-0.032528 0.067 0.07853" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="left_foot6b_collision" size="0.012 0.033379" pos="-0.032528 -0.033 0.07853" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="left_foot7f_collision" size="0.012 0.033379" pos="-0.060104 0.067 0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="left_foot7b_collision" size="0.012 0.033379" pos="-0.060104 -0.033 0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="left_foot8f_collision" size="0.012 0.033379" pos="-0.07853 0.067 0.032528" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="left_foot8b_collision" size="0.012 0.033379" pos="-0.07853 -0.033 0.032528" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="left_foot9f_collision" size="0.012 0.033379" pos="-0.085 0.067 0" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="left_foot9b_collision" size="0.012 0.033379" pos="-0.085 -0.033 0" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="left_foot10f_collision" size="0.012 0.033379" pos="-0.07853 0.067 -0.032528" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="left_foot10b_collision" size="0.012 0.033379" pos="-0.07853 -0.033 -0.032528" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="left_foot11f_collision" size="0.012 0.033379" pos="-0.060104 0.067 -0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="left_foot11b_collision" size="0.012 0.033379" pos="-0.060104 -0.033 -0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="left_foot12f_collision" size="0.012 0.033379" pos="-0.032528 0.067 -0.07853" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="left_foot12b_collision" size="0.012 0.033379" pos="-0.032528 -0.033 -0.07853" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="left_foot13f_collision" size="0.012 0.033379" pos="0 0.067 -0.085" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="left_foot13b_collision" size="0.012 0.033379" pos="0 -0.033 -0.085" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="left_foot14f_collision" size="0.012 0.033379" pos="0.032528 0.067 -0.07853" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="left_foot14b_collision" size="0.012 0.033379" pos="0.032528 -0.033 -0.07853" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="left_foot15f_collision" size="0.012 0.033379" pos="0.060104 0.067 -0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="left_foot15b_collision" size="0.012 0.033379" pos="0.060104 -0.033 -0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="left_foot16f_collision" size="0.012 0.033379" pos="0.07853 0.067 -0.032528" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="left_foot16b_collision" size="0.012 0.033379" pos="0.07853 -0.033 -0.032528" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
+                <geom name="left_foot2f_collision" size="0.012 0.033379" pos="0.060104 0.067 0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
+                <geom name="left_foot3f_collision" size="0.012 0.033379" pos="0 0.067 0.085" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
+                <geom name="left_foot4f_collision" size="0.012 0.033379" pos="-0.060104 0.067 0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
+                <geom name="left_foot5f_collision" size="0.012 0.033379" pos="-0.085 0.067 0" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
+                <geom name="left_foot6f_collision" size="0.012 0.033379" pos="-0.060104 0.067 -0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
+                <geom name="left_foot7f_collision" size="0.012 0.033379" pos="0 0.067 -0.085" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
+                <geom name="left_foot8f_collision" size="0.012 0.033379" pos="0.060104 0.067 -0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
+                <geom name="left_foot1b2_collision" size="0.012 0.033379" pos="0.285 -0.033 0" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
+                <geom name="left_foot2b2_collision" size="0.012 0.033379" pos="0.260104 -0.033 0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
+                <geom name="left_foot3b2_collision" size="0.012 0.033379" pos="0.2 -0.033 0.085" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
+                <geom name="left_foot4b2_collision" size="0.012 0.033379" pos="0.139896 -0.033 0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
+                <geom name="left_foot5b2_collision" size="0.012 0.033379" pos="0.115 -0.033 0" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
+                <geom name="left_foot6b2_collision" size="0.012 0.033379" pos="0.139896 -0.033 -0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
+                <geom name="left_foot7b2_collision" size="0.012 0.033379" pos="0.2 -0.033 -0.085" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
+                <geom name="left_foot8b2_collision" size="0.012 0.033379" pos="0.260104 -0.033 -0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
                 <body name="LL_FOOT" pos="0.04 0 0">
                   <inertial pos="0 0 0" mass="1e-09" diaginertia="0 0 0"/>
                 </body>
@@ -125,38 +109,22 @@
               <body name="right_foot_link" pos="0 0 -0.45">
                 <inertial pos="0 -0.017 0" quat="0.707107 0.707107 0 0" mass="7.7653" diaginertia="0.075 0.075 0.0327"/>
                 <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.752941 0.752941 0.752941 1" mesh="rleg5_link"/>
-                <geom name="right_foot1f_collision" size="0.012 0.033379" pos="0.085 0.033 0" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
                 <geom name="right_foot1b_collision" size="0.012 0.033379" pos="0.085 -0.067 0" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="right_foot2f_collision" size="0.012 0.033379" pos="0.07853 0.033 0.032528" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="right_foot2b_collision" size="0.012 0.033379" pos="0.07853 -0.067 0.032528" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="right_foot3f_collision" size="0.012 0.033379" pos="0.060104 0.033 0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="right_foot3b_collision" size="0.012 0.033379" pos="0.060104 -0.067 0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="right_foot4f_collision" size="0.012 0.033379" pos="0.032528 0.033 0.07853" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="right_foot4b_collision" size="0.012 0.033379" pos="0.032528 -0.067 0.07853" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="right_foot5f_collision" size="0.012 0.033379" pos="0 0.033 0.085" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="right_foot5b_collision" size="0.012 0.033379" pos="0 -0.067 0.085" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="right_foot6f_collision" size="0.012 0.033379" pos="-0.032528 0.033 0.07853" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="right_foot6b_collision" size="0.012 0.033379" pos="-0.032528 -0.067 0.07853" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="right_foot7f_collision" size="0.012 0.033379" pos="-0.060104 0.033 0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="right_foot7b_collision" size="0.012 0.033379" pos="-0.060104 -0.067 0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="right_foot8f_collision" size="0.012 0.033379" pos="-0.07853 0.033 0.032528" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="right_foot8b_collision" size="0.012 0.033379" pos="-0.07853 -0.067 0.032528" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="right_foot9f_collision" size="0.012 0.033379" pos="-0.085 0.033 0" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="right_foot9b_collision" size="0.012 0.033379" pos="-0.085 -0.067 0" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="right_foot10f_collision" size="0.012 0.033379" pos="-0.07853 0.033 -0.032528" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="right_foot10b_collision" size="0.012 0.033379" pos="-0.07853 -0.067 -0.032528" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="right_foot11f_collision" size="0.012 0.033379" pos="-0.060104 0.033 -0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="right_foot11b_collision" size="0.012 0.033379" pos="-0.060104 -0.067 -0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="right_foot12f_collision" size="0.012 0.033379" pos="-0.032528 0.033 -0.07853" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="right_foot12b_collision" size="0.012 0.033379" pos="-0.032528 -0.067 -0.07853" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="right_foot13f_collision" size="0.012 0.033379" pos="0 0.033 -0.085" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="right_foot13b_collision" size="0.012 0.033379" pos="0 -0.067 -0.085" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="right_foot14f_collision" size="0.012 0.033379" pos="0.032528 0.033 -0.07853" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="right_foot14b_collision" size="0.012 0.033379" pos="0.032528 -0.067 -0.07853" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="right_foot15f_collision" size="0.012 0.033379" pos="0.060104 0.033 -0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="right_foot15b_collision" size="0.012 0.033379" pos="0.060104 -0.067 -0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="right_foot16f_collision" size="0.012 0.033379" pos="0.07853 0.033 -0.032528" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
-                <geom name="right_foot16b_collision" size="0.012 0.033379" pos="0.07853 -0.067 -0.032528" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
+                <geom name="right_foot2b_collision" size="0.012 0.033379" pos="0.060104 -0.067 0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
+                <geom name="right_foot3b_collision" size="0.012 0.033379" pos="0 -0.067 0.085" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
+                <geom name="right_foot4b_collision" size="0.012 0.033379" pos="-0.060104 -0.067 0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
+                <geom name="right_foot5b_collision" size="0.012 0.033379" pos="-0.085 -0.067 0" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
+                <geom name="right_foot6b_collision" size="0.012 0.033379" pos="-0.060104 -0.067 -0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
+                <geom name="right_foot7b_collision" size="0.012 0.033379" pos="0 -0.067 -0.085" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
+                <geom name="right_foot8b_collision" size="0.012 0.033379" pos="0.060104 -0.067 -0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
+                <geom name="right_foot1f2_collision" size="0.012 0.033379" pos="0.285 0.033 0" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
+                <geom name="right_foot2f2_collision" size="0.012 0.033379" pos="0.260104 0.033 0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
+                <geom name="right_foot3f2_collision" size="0.012 0.033379" pos="0.2 0.033 0.085" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
+                <geom name="right_foot4f2_collision" size="0.012 0.033379" pos="0.139896 0.033 0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
+                <geom name="right_foot5f2_collision" size="0.012 0.033379" pos="0.115 0.033 0" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
+                <geom name="right_foot6f2_collision" size="0.012 0.033379" pos="0.139896 0.033 -0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
+                <geom name="right_foot7f2_collision" size="0.012 0.033379" pos="0.2 0.033 -0.085" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
+                <geom name="right_foot8f2_collision" size="0.012 0.033379" pos="0.260104 0.033 -0.060104" quat="0.707107 0.707107 0 0" type="capsule" priority="1" friction="0.6 0.005 0.0001" rgba="0.2 0.2 0.2 1"/>
                 <body name="LR_FOOT" pos="0.04 0 0">
                   <inertial pos="0 0 0" mass="1e-09" diaginertia="0 0 0"/>
                 </body>
